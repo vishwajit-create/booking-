@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vishwajit Kumar — Portfolio</title>
+  <meta name="description" content="Portfolio of Vishwajit Kumar — Student developer passionate about Python, SQL, and Web Development." />
+  <meta name="keywords" content="Vishwajit Kumar, portfolio, Python developer, SQL, web developer, student" />
+  <meta name="author" content="Vishwajit Kumar" />
+  <meta property="og:title" content="Vishwajit Kumar — Portfolio" />
+  <meta property="og:description" content="Student developer passionate about Python, SQL, and Web Development." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Background Particles -->
+  <div id="particles-container"></div>
+
+  <!-- Navigation -->
+  <nav id="navbar">
+    <div class="nav-logo">
+      <span class="logo-bracket">&lt;</span>VK<span class="logo-bracket">/&gt;</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#home" class="nav-link active">Home</a></li>
+      <li><a href="#about" class="nav-link">About</a></li>
+      <li><a href="#skills" class="nav-link">Skills</a></li>
+      <li><a href="#projects" class="nav-link">Projects</a></li>
+      <li><a href="#github" class="nav-link">GitHub</a></li>
+      <li><a href="#contact" class="nav-link">Contact</a></li>
+    </ul>
+    <a href="https://www.linkedin.com/in/vishwajit-kumar-b15285331" target="_blank" class="nav-cta">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+      LinkedIn
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>Available for Opportunities</span>
+      </div>
+      <h1 class="hero-title">
+        Hi, I'm <span class="gradient-text">Vishwajit</span><br />
+        <span class="typewriter" id="typewriter"></span>
+      </h1>
+      <p class="hero-subtitle">
+        A passionate student developer building real-world solutions with
+        <span class="highlight">Python</span>, <span class="highlight">SQL</span> & <span class="highlight">Web Technologies</span>.
+      </p>
+      <div class="hero-actions">
+        <a href="#projects" class="btn btn-primary">
+          <span>View Projects</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#contact" class="btn btn-secondary">Get In Touch</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat" id="stat-repos">
+          <span class="stat-number" data-target="8">8</span>
+          <span class="stat-label">Repositories</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat" id="stat-followers">
+          <span class="stat-number" data-target="0">0</span>
+          <span class="stat-label">Followers</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-number">100%</span>
+          <span class="stat-label">Dedication</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="avatar-wrapper">
+        <div class="avatar-ring ring-1"></div>
+        <div class="avatar-ring ring-2"></div>
+        <div class="avatar-ring ring-3"></div>
+        <div class="avatar-container">
+          <img id="github-avatar" src="https://avatars.githubusercontent.com/u/0" alt="Vishwajit Kumar" class="avatar-img" />
+          <div class="avatar-placeholder" id="avatar-placeholder">VK</div>
+        </div>
+        <div class="floating-badge badge-python">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="24" height="24" alt="Python" />
+        </div>
+        <div class="floating-badge badge-sql">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" width="24" height="24" alt="SQL" />
+        </div>
+        <div class="floating-badge badge-html">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" width="24" height="24" alt="HTML" />
+        </div>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <span>Scroll</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">About Me</span>
+        <h2 class="section-title">Who I Am</h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-card glass-card">
+          <div class="about-icon">🎓</div>
+          <h3>Student Developer</h3>
+          <p>Enthusiastic Computer Science student with a strong foundation in programming, databases, and web development, eager to apply skills in real-world projects.</p>
+        </div>
+        <div class="about-card glass-card">
+          <div class="about-icon">💡</div>
+          <h3>Problem Solver</h3>
+          <p>I love tackling complex challenges with elegant solutions. Whether it's optimizing a SQL query or building a web scraper, I approach every problem with curiosity.</p>
+        </div>
+        <div class="about-card glass-card">
+          <div class="about-icon">🚀</div>
+          <h3>Continuous Learner</h3>
+          <p>Always exploring new technologies, frameworks, and best practices. Currently deepening my knowledge in Python data analysis and full-stack web development.</p>
+        </div>
+        <div class="about-card glass-card">
+          <div class="about-icon">🤝</div>
+          <h3>Team Player</h3>
+          <p>Collaborative mindset with experience in group projects. I believe great software is built by great teams working together with shared goals.</p>
+        </div>
+      </div>
+      <div class="about-links">
+        <a href="https://www.linkedin.com/in/vishwajit-kumar-b15285331" target="_blank" class="about-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+          View LinkedIn Profile
+        </a>
+        <a href="https://github.com/vishwajit-create" target="_blank" class="about-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          View GitHub Profile
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills Section -->
+  <section id="skills" class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Technical Skills</span>
+        <h2 class="section-title">My Tech Stack</h2>
+      </div>
+      <div class="skills-grid">
+        <div class="skill-category glass-card">
+          <h3 class="skill-cat-title">
+            <span class="skill-cat-icon">🐍</span> Languages
+          </h3>
+          <div class="skill-items">
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="20" height="20" alt="Python" />
+                <span>Python</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="85"></div></div>
+            </div>
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" width="20" height="20" alt="HTML" />
+                <span>HTML5</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="80"></div></div>
+            </div>
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" width="20" height="20" alt="CSS" />
+                <span>CSS3</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="75"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="skill-category glass-card">
+          <h3 class="skill-cat-title">
+            <span class="skill-cat-icon">🗄️</span> Databases
+          </h3>
+          <div class="skill-items">
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" width="20" height="20" alt="MySQL" />
+                <span>MySQL</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="80"></div></div>
+            </div>
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sqlite/sqlite-original.svg" width="20" height="20" alt="SQLite" />
+                <span>SQLite</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="70"></div></div>
+            </div>
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" width="20" height="20" alt="PostgreSQL" />
+                <span>PostgreSQL</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="60"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="skill-category glass-card">
+          <h3 class="skill-cat-title">
+            <span class="skill-cat-icon">🛠️</span> Tools & Frameworks
+          </h3>
+          <div class="skill-items">
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="20" height="20" alt="Git" />
+                <span>Git & GitHub</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="75"></div></div>
+            </div>
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg" width="20" height="20" alt="VS Code" />
+                <span>VS Code</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="90"></div></div>
+            </div>
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg" width="20" height="20" alt="Linux" />
+                <span>Linux/CLI</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="65"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="skill-category glass-card">
+          <h3 class="skill-cat-title">
+            <span class="skill-cat-icon">📊</span> Data & Analysis
+          </h3>
+          <div class="skill-items">
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pandas/pandas-original.svg" width="20" height="20" alt="Pandas" />
+                <span>Pandas</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="72"></div></div>
+            </div>
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg" width="20" height="20" alt="NumPy" />
+                <span>NumPy</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="68"></div></div>
+            </div>
+            <div class="skill-item">
+              <div class="skill-info">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jupyter/jupyter-original.svg" width="20" height="20" alt="Jupyter" />
+                <span>Jupyter Notebook</span>
+              </div>
+              <div class="skill-bar"><div class="skill-fill" data-width="78"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects Section -->
+  <section id="projects" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">My Work</span>
+        <h2 class="section-title">Featured Projects</h2>
+        <p class="section-subtitle">Dynamically loaded from my GitHub repositories</p>
+      </div>
+      <div class="projects-filter">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="python">Python</button>
+        <button class="filter-btn" data-filter="typescript">TypeScript</button>
+        <button class="filter-btn" data-filter="javascript">JavaScript</button>
+        <button class="filter-btn" data-filter="html">HTML</button>
+      </div>
+      <div id="projects-grid" class="projects-grid">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Fetching repositories from GitHub...</p>
+        </div>
+      </div>
+      <div class="projects-cta">
+        <a href="https://github.com/vishwajit-create" target="_blank" class="btn btn-primary">
+          View All on GitHub
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- GitHub Stats Section -->
+  <section id="github" class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">GitHub Activity</span>
+        <h2 class="section-title">My GitHub Stats</h2>
+      </div>
+      <div class="github-dashboard">
+        <div class="github-profile-card glass-card">
+          <div class="gh-avatar-wrap">
+            <img id="gh-profile-avatar" src="" alt="GitHub Avatar" />
+            <div class="gh-avatar-placeholder" id="gh-avatar-placeholder">VK</div>
+          </div>
+          <div class="gh-profile-info">
+            <h3 id="gh-name">Vishwajit Kumar</h3>
+            <p id="gh-bio" class="gh-bio">Student Developer | Python | SQL | Web</p>
+            <a id="gh-link" href="https://github.com/vishwajit-create" target="_blank" class="gh-username">@vishwajit-create</a>
+          </div>
+          <div class="gh-meta-grid">
+            <div class="gh-meta-item">
+              <span class="gh-meta-value" id="gh-repos">—</span>
+              <span class="gh-meta-label">Repos</span>
+            </div>
+            <div class="gh-meta-item">
+              <span class="gh-meta-value" id="gh-followers">—</span>
+              <span class="gh-meta-label">Followers</span>
+            </div>
+            <div class="gh-meta-item">
+              <span class="gh-meta-value" id="gh-following">—</span>
+              <span class="gh-meta-label">Following</span>
+            </div>
+            <div class="gh-meta-item">
+              <span class="gh-meta-value" id="gh-stars">—</span>
+              <span class="gh-meta-label">Stars</span>
+            </div>
+          </div>
+        </div>
+        <div class="github-stats-cards">
+          <div class="gh-stat-card glass-card">
+            <img id="github-stats-img" src="https://github-readme-stats.vercel.app/api?username=vishwajit-create&show_icons=true&theme=tokyonight&hide_border=true&bg_color=00000000&text_color=e2e8f0&title_color=a855f7&icon_color=818cf8" alt="GitHub Stats" loading="lazy" />
+          </div>
+          <div class="gh-stat-card glass-card">
+            <img id="github-streak-img" src="https://github-readme-streak-stats.herokuapp.com/?user=vishwajit-create&theme=tokyonight&hide_border=true&background=00000000&stroke=a855f7&ring=a855f7&fire=f59e0b&currStreakLabel=e2e8f0" alt="GitHub Streak" loading="lazy" />
+          </div>
+          <div class="gh-stat-card glass-card gh-langs-card">
+            <img id="github-langs-img" src="https://github-readme-stats.vercel.app/api/top-langs/?username=vishwajit-create&layout=compact&theme=tokyonight&hide_border=true&bg_color=00000000&text_color=e2e8f0&title_color=a855f7" alt="Top Languages" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Get In Touch</span>
+        <h2 class="section-title">Let's Connect</h2>
+        <p class="section-subtitle">I'm open to internships, collaborations, and exciting opportunities!</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="contact-card glass-card">
+            <div class="contact-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+            </div>
+            <div class="contact-detail">
+              <h4>LinkedIn</h4>
+              <a href="https://www.linkedin.com/in/vishwajit-kumar-b15285331" target="_blank">vishwajit-kumar-b15285331</a>
+            </div>
+          </div>
+          <div class="contact-card glass-card">
+            <div class="contact-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            </div>
+            <div class="contact-detail">
+              <h4>GitHub</h4>
+              <a href="https://github.com/vishwajit-create" target="_blank">@vishwajit-create</a>
+            </div>
+          </div>
+          <div class="contact-card glass-card">
+            <div class="contact-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+            </div>
+            <div class="contact-detail">
+              <h4>Email</h4>
+              <a href="mailto:vishwajit@example.com" id="contact-email">vishwajit@example.com</a>
+            </div>
+          </div>
+        </div>
+        <div class="contact-form-wrap glass-card">
+          <h3>Send a Message</h3>
+          <form id="contact-form" class="contact-form">
+            <div class="form-group">
+              <label for="name">Your Name</label>
+              <input type="text" id="name" name="name" placeholder="John Doe" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Your Email</label>
+              <input type="email" id="email" name="email" placeholder="john@example.com" required />
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <input type="text" id="subject" name="subject" placeholder="Internship / Collaboration / Hello!" required />
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="4" placeholder="Your message here..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full" id="send-btn">
+              <span id="send-btn-text">Send Message</span>
+              <div id="send-spinner" class="btn-spinner hidden"></div>
+            </button>
+            <div id="form-success" class="form-success hidden">
+              ✅ Message saved! (Demo mode — connect an email service for live delivery.)
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <span class="logo-bracket">&lt;</span>VK<span class="logo-bracket">/&gt;</span>
+        </div>
+        <p class="footer-text">Built with ❤️ by <strong>Vishwajit Kumar</strong> — 2026</p>
+        <div class="footer-links">
+          <a href="https://www.linkedin.com/in/vishwajit-kumar-b15285331" target="_blank" aria-label="LinkedIn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+          </a>
+          <a href="https://github.com/vishwajit8mxgyao" target="_blank" aria-label="GitHub">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          </a>
+        </div>
+      </div>
+      <p class="footer-bottom">Powered by GitHub API · Hosted locally</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
