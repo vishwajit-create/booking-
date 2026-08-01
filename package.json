@@ -1,0 +1,28 @@
+{
+  "name": "vishwajit-portfolio",
+  "version": "1.0.0",
+  "description": "Portfolio of Vishwajit Kumar - Student developer passionate about Python, Web Development, and building real-world projects",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vishwajit-create/vishwajit-portfolio.git"
+  },
+  "keywords": [
+    "portfolio",
+    "python",
+    "web-development",
+    "student-developer"
+  ],
+  "author": "Vishwajit Kumar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vishwajit-create/vishwajit-portfolio/issues"
+  },
+  "homepage": "https://github.com/vishwajit-create/vishwajit-portfolio#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
