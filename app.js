@@ -109,21 +109,26 @@ function initIntro() {
   });
 }
 
-// ─── NEURAL NETWORK BACKGROUND CANVAS ────────────────────────────
+// ─── SPARKLE PARTICLE CANVAS ────────────────────────────────────
 function initNavCanvas() {
   const canvas = document.getElementById('bg-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  let W, H, pts, animId;
+
+  let W, H, pts, stars = [], lastStar = 0;
 
   function resize() {
     W = canvas.width = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    const count = Math.floor((W * H) / 15000);
-    pts = Array.from({ length: Math.min(count, 100) }, () => ({
-      x: Math.random() * W, y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
-      r: Math.random() * 1.5 + 0.5,
+    const count = Math.min(Math.floor(W * H / 10000), 90);
+    pts = Array.from({ length: count }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2 + 0.8,
+      // each particle has its own color tint
+      hue: [240, 200, 280, 320][Math.floor(Math.random() * 4)],
     }));
   }
 
@@ -133,48 +138,105 @@ function initNavCanvas() {
   let mx = -9999, my = -9999;
   window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; }, { passive: true });
 
-  function draw() {
+  // Create a shooting star
+  function spawnStar() {
+    const angle = Math.random() * Math.PI * 0.5 + Math.PI * 0.1;
+    stars.push({
+      x: Math.random() * W * 0.8,
+      y: Math.random() * H * 0.4,
+      vx: Math.cos(angle) * (3 + Math.random() * 4),
+      vy: Math.sin(angle) * (1.5 + Math.random() * 2),
+      len: 80 + Math.random() * 120,
+      life: 1,
+    });
+  }
+
+  function draw(ts) {
     ctx.clearRect(0, 0, W, H);
 
+    // ── Shooting stars ──
+    if (ts - lastStar > 3500 + Math.random() * 3000) {
+      spawnStar(); lastStar = ts;
+    }
+    stars = stars.filter(s => s.life > 0);
+    stars.forEach(s => {
+      const tail = { x: s.x - s.vx * (s.len / 6), y: s.y - s.vy * (s.len / 6) };
+      const grad = ctx.createLinearGradient(tail.x, tail.y, s.x, s.y);
+      grad.addColorStop(0, 'transparent');
+      grad.addColorStop(1, `rgba(200,220,255,${s.life * 0.85})`);
+      ctx.beginPath();
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.5;
+      ctx.moveTo(tail.x, tail.y);
+      ctx.lineTo(s.x, s.y);
+      ctx.stroke();
+      // glow head
+      const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 4);
+      grd.addColorStop(0, `rgba(220,230,255,${s.life})`);
+      grd.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.fillStyle = grd;
+      ctx.arc(s.x, s.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      s.x += s.vx; s.y += s.vy; s.life -= 0.012;
+    });
+
+    // ── Particles ──
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
 
-      // Mouse repulsion
-      const dmx = p.x - mx, dmy = p.y - my;
+      // Mouse attraction (gentle)
+      const dmx = mx - p.x, dmy = my - p.y;
       const dm = Math.sqrt(dmx * dmx + dmy * dmy);
-      if (dm < 100) {
-        p.x += (dmx / dm) * 0.5;
-        p.y += (dmy / dm) * 0.5;
+      if (dm < 160 && dm > 1) {
+        p.x += (dmx / dm) * 0.25;
+        p.y += (dmy / dm) * 0.25;
       }
 
       p.x += p.vx; p.y += p.vy;
-      if (p.x < 0 || p.x > W) p.vx *= -1;
-      if (p.y < 0 || p.y > H) p.vy *= -1;
+      if (p.x < 0) { p.x = 0; p.vx *= -1; }
+      if (p.x > W) { p.x = W; p.vx *= -1; }
+      if (p.y < 0) { p.y = 0; p.vy *= -1; }
+      if (p.y > H) { p.y = H; p.vy *= -1; }
 
+      // Draw connection lines
       for (let j = i + 1; j < pts.length; j++) {
         const q = pts[j];
         const dx = p.x - q.x, dy = p.y - q.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 150) {
-          const alpha = 0.12 * (1 - dist / 150);
+        if (dist < 130) {
+          const a = (1 - dist / 130) * 0.25;
           ctx.beginPath();
-          ctx.strokeStyle = `rgba(59,130,246,${alpha})`;
-          ctx.lineWidth = 0.5;
+          ctx.strokeStyle = `hsla(${p.hue},80%,70%,${a})`;
+          ctx.lineWidth = 0.7;
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(q.x, q.y);
           ctx.stroke();
         }
       }
 
+      // Glow dot
+      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+      grd.addColorStop(0, `hsla(${p.hue},90%,75%,0.9)`);
+      grd.addColorStop(0.5, `hsla(${p.hue},80%,65%,0.3)`);
+      grd.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.fillStyle = grd;
+      ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Solid centre
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(59,130,246,0.35)';
+      ctx.fillStyle = `hsla(${p.hue},90%,80%,0.95)`;
       ctx.fill();
     }
-    animId = requestAnimationFrame(draw);
+
+    requestAnimationFrame(draw);
   }
 
-  draw();
+  requestAnimationFrame(draw);
 }
 
 // ─── SCROLL PROGRESS BAR ─────────────────────────────────────────
