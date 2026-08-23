@@ -4,6 +4,7 @@
 const CONFIG = {
   GITHUB_USERNAME: 'vishwajit-create',
   GITHUB_BASE: 'https://api.github.com',
+  GOOGLE_SHEETS_URL: 'https://script.google.com/macros/s/AKfycby1Uc706O9LkJ9Uhyd5QhMNAR5bgJE5Lg31Iy5fxunHmRyuIrWsA_Y7l9UIxdjFWNX0dg/exec',
   TYPEWRITER_STRINGS: [
     'Student Developer 👨‍💻',
     'Python Bot Builder 🤖',
@@ -504,24 +505,45 @@ function initContactForm() {
     btnText?.classList.add('hidden');
     spin?.classList.remove('hidden');
 
-    setTimeout(() => {
-      const msg = {
-        id: Date.now(),
-        name: form.name.value,
-        email: form.email.value,
-        subject: form.subject.value,
-        message: form.message.value,
-        timestamp: new Date().toISOString(),
-      };
-      state.messages.push(msg);
-      localStorage.setItem('vk_msgs', JSON.stringify(state.messages));
+    const formData = {
+      name: form.name.value,
+      email: form.email.value,
+      subject: form.subject.value,
+      message: form.message.value,
+    };
 
-      btnText?.classList.remove('hidden');
-      spin?.classList.add('hidden');
-      success?.classList.remove('hidden');
-      form.reset();
-      setTimeout(() => success?.classList.add('hidden'), 5000);
-    }, 1000);
+    // Save to localStorage backup
+    state.messages.push({
+      ...formData,
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+    });
+    localStorage.setItem('vk_msgs', JSON.stringify(state.messages));
+
+    // Send to Google Sheets Apps Script
+    fetch(CONFIG.GOOGLE_SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+      body: JSON.stringify(formData),
+    })
+      .then(() => {
+        btnText?.classList.remove('hidden');
+        spin?.classList.add('hidden');
+        success?.classList.remove('hidden');
+        form.reset();
+        setTimeout(() => success?.classList.add('hidden'), 5000);
+      })
+      .catch(err => {
+        console.error('Submission error:', err);
+        btnText?.classList.remove('hidden');
+        spin?.classList.add('hidden');
+        success?.classList.remove('hidden');
+        form.reset();
+        setTimeout(() => success?.classList.add('hidden'), 5000);
+      });
   });
 }
 
