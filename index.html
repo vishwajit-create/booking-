@@ -2,544 +2,397 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
-  <title>Vishwajit Kumar | Student Developer</title>
-  <meta name="description" content="Portfolio of Vishwajit Kumar — Student developer passionate about Python, Web Development, and building real-world projects." />
-  <meta name="author" content="Vishwajit Kumar" />
-  <meta name="keywords" content="Vishwajit Kumar, portfolio, Python developer, web developer, student, GitHub" />
-  <meta property="og:title" content="Vishwajit Kumar | Student Developer" />
-  <meta property="og:description" content="Student developer passionate about Python, SQL & Web Technologies." />
-  <meta property="og:type" content="website" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Urban Hair | Salon & Beauty Parlour Booking Platform</title>
+  <meta name="description" content="Book appointments at top salons & beauty parlours near you. salon owners can manage bookings and register their shop." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
-  <script>
-    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-  </script>
-  <script defer src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
 </head>
 <body>
 
-  <!-- Dot grid & aurora blobs (always visible CSS bg) -->
-  <div class="dot-grid" aria-hidden="true"></div>
-  <div class="blob blob-1" aria-hidden="true"></div>
-  <div class="blob blob-2" aria-hidden="true"></div>
-  <div class="blob blob-3" aria-hidden="true"></div>
-  <div class="blob blob-4" aria-hidden="true"></div>
+  <!-- Background Decorative Aurora Grid -->
+  <div class="glow-bg" aria-hidden="true"></div>
 
-  <!-- Scroll Progress Bar -->
-  <div id="scroll-progress"></div>
+  <!-- Main Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-logo" id="brand-home">
+        <span class="logo-icon">✂️</span>
+        <span class="logo-text">Urban<span class="highlight">Hair</span></span>
+        <span class="badge-tag">Firebase Powered</span>
+      </div>
 
-  <!-- Canvas (extra sparkle particles on top) -->
-  <canvas id="bg-canvas"></canvas>
-
-  <!-- Intro Overlay -->
-  <div id="intro-overlay">
-    <canvas id="intro-canvas"></canvas>
-    <button id="skip-intro">Skip intro</button>
-    <div id="intro-text">
-      <span id="intro-name">Vishwajit Kumar</span>
-      <span id="intro-sub">Loading Portfolio...</span>
-    </div>
-  </div>
-
-  <!-- Navigation -->
-  <header id="navbar">
-    <div class="nav-inner">
-      <div class="nav-logo" tabindex="0">Namaste 🙏</div>
-      <nav class="nav-links" role="navigation">
-        <a href="#about">About</a>
-        <a href="#skills">Skills</a>
-        <a href="#projects">Projects</a>
-        <a href="#github">GitHub</a>
-        <a href="#contact">Contact</a>
+      <!-- Navigation Tabs for Views -->
+      <nav class="nav-views" id="nav-views">
+        <button class="nav-btn active" data-target="view-customer">Explore Salons</button>
+        <button class="nav-btn" data-target="view-my-appointments" id="nav-my-bookings" style="display: none;">My Bookings</button>
+        <button class="nav-btn" data-target="view-salon-owner" id="nav-owner-dash" style="display: none;">Salon Dashboard</button>
+        <button class="nav-btn admin-link" data-target="view-super-admin" id="nav-admin-dash" style="display: none;">🛡️ Super Admin</button>
       </nav>
-      <div class="nav-right">
-        <button id="theme-toggle" aria-label="Toggle theme">☀️</button>
-        <button id="hamburger" aria-label="Menu">
-          <span></span><span></span><span></span>
-        </button>
+
+      <!-- Auth Action & User Profile Info -->
+      <div class="auth-bar">
+        <div id="user-info-chip" class="user-chip" style="display: none;">
+          <img id="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=urban" alt="User" class="user-avatar" />
+          <div class="user-details">
+            <span id="user-name-display" class="user-name">User</span>
+            <span id="user-role-badge" class="role-badge">Customer</span>
+          </div>
+          <button id="btn-logout" class="btn-logout" title="Sign Out">Sign Out 🚪</button>
+        </div>
+
+        <button id="btn-open-auth" class="btn-primary">Sign In / Register</button>
       </div>
     </div>
   </header>
 
-  <!-- Mobile Menu -->
-  <div id="mobile-menu">
-    <button id="close-menu">✕</button>
-    <nav>
-      <a href="#about">About</a>
-      <a href="#skills">Skills</a>
-      <a href="#projects">Projects</a>
-      <a href="#github">GitHub</a>
-      <a href="#contact">Contact</a>
-    </nav>
-  </div>
+  <!-- Main Content Container -->
+  <main class="app-main">
 
-  <main id="main-content">
-
-    <!-- ─── HERO ──────────────────────────────────── -->
-    <section id="hero">
-      <div class="hero-inner">
-        <!-- Avatar -->
-        <div class="hero-avatar reveal-up" style="--delay:0.1s">
-          <div class="avatar-glow"></div>
-          <div class="avatar-frame">
-            <img id="gh-avatar" src="https://avatars.githubusercontent.com/u/227098699?v=4" alt="Vishwajit Kumar" />
-            <div class="avatar-initials">VK</div>
+    <!-- ─────────────────────────────────────────────────────────────
+         1. CUSTOMER EXPLORE & BOOKING VIEW
+    ───────────────────────────────────────────────────────────── -->
+    <section id="view-customer" class="view-section active">
+      <!-- Hero Section -->
+      <div class="hero-banner">
+        <div class="hero-content">
+          <h1>Discover & Book Top <span class="gradient-text">Salons & Beauty Parlours</span></h1>
+          <p>Instant appointments, verified reviews, and real-time status updates from salon owners.</p>
+          
+          <!-- Search & Filter Control -->
+          <div class="search-bar-box">
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="input-search-salon" placeholder="Search salon name, city or area..." />
+            </div>
+            <select id="filter-city">
+              <option value="">All Cities</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Bengaluru">Bengaluru</option>
+              <option value="Hyderabad">Hyderabad</option>
+              <option value="Pune">Pune</option>
+            </select>
           </div>
-          <div class="avatar-status"><span class="status-dot"></span> Open to opportunities</div>
-        </div>
-
-        <!-- Name & Title -->
-        <div class="hero-text reveal-up" style="--delay:0.2s">
-          <h1>Vishwajit <span class="grad-text">Kumar</span></h1>
-        </div>
-
-        <!-- Typewriter -->
-        <div class="hero-typewriter reveal-up" style="--delay:0.3s">
-          <code id="typewriter"><span id="tw-text"></span><span class="tw-cursor">|</span></code>
-        </div>
-
-        <!-- Tags -->
-        <div class="hero-tags reveal-up" style="--delay:0.4s">
-          <span class="tag">Python 🐍</span>
-          <span class="tag">Web Dev 🌐</span>
-          <span class="tag">Bot Builder 🤖</span>
-          <span class="tag">Open Source 💡</span>
-          <span class="tag">SQL 🗄️</span>
-        </div>
-
-        <!-- CTA Buttons -->
-        <div class="hero-cta reveal-up" style="--delay:0.5s">
-          <a href="#contact" class="btn btn-primary">Get In Touch</a>
-          <a href="#projects" class="btn btn-outline">View Projects</a>
-          <a href="https://github.com/vishwajit-create" target="_blank" class="btn btn-ghost">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-            GitHub
-          </a>
-        </div>
-
-        <!-- Social Links -->
-        <div class="hero-socials reveal-up" style="--delay:0.6s">
-          <a href="https://github.com/vishwajit-create" target="_blank" aria-label="GitHub" class="social-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
-          </a>
-          <a href="https://www.linkedin.com/in/vishwajit-kumar-b15285331" target="_blank" aria-label="LinkedIn" class="social-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
-          </a>
-          <a href="mailto:vishwajit@example.com" id="hero-email-link" aria-label="Email" class="social-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/></svg>
-          </a>
-        </div>
-
-        <!-- Scroll indicator -->
-        <div class="scroll-down reveal-up" style="--delay:0.8s">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
         </div>
       </div>
-    </section>
 
-    <!-- ─── ABOUT ──────────────────────────────────── -->
-    <section id="about" class="section">
+      <!-- Category Filter Pills -->
+      <div class="categories-bar">
+        <button class="cat-pill active" data-cat="all">✨ All Services</button>
+        <button class="cat-pill" data-cat="Hair Styling">💇 Hair & Styling</button>
+        <button class="cat-pill" data-cat="Beauty & Makeup">💄 Beauty & Makeup</button>
+        <button class="cat-pill" data-cat="Spa & Massage">💆 Spa & Massage</button>
+        <button class="cat-pill" data-cat="Nail Care">💅 Nails & Pedicure</button>
+      </div>
+
+      <!-- Salon Cards Grid -->
       <div class="container">
-        <div class="section-header reveal-up">
-          <span class="section-badge">About Me</span>
-          <h2>Who I Am</h2>
-          <p>Passionate developer building real-world solutions from scratch.</p>
+        <div class="section-title-row">
+          <h2>Available Salons & Parlours</h2>
+          <span class="count-tag" id="salons-count-label">0 Verified Salons</span>
         </div>
-        <div class="about-grid">
-          <div class="glass-card reveal-up" style="--delay:0.1s">
-            <h3>Background</h3>
-            <p>I'm a passionate student developer with a strong foundation in Python, web development, and database management. I enjoy building projects that solve real-world problems — from automation bots to full-featured web applications.</p>
-            <p style="margin-top:12px">My experience spans across building websites with HTML/CSS/JavaScript, creating Python automation tools, and working with SQL databases. I'm always eager to learn new technologies and take on challenging projects.</p>
-          </div>
-          <div class="glass-card reveal-up" style="--delay:0.2s">
-            <h3>Details</h3>
-            <div class="detail-list">
-              <div class="detail-item">
-                <span class="detail-icon">🎓</span>
-                <div>
-                  <strong>Education</strong>
-                  <span>Student Developer</span>
-                </div>
-              </div>
-              <div class="detail-item">
-                <span class="detail-icon">📍</span>
-                <div>
-                  <strong>Location</strong>
-                  <span>India</span>
-                </div>
-              </div>
-              <div class="detail-item">
-                <span class="detail-icon">💼</span>
-                <div>
-                  <strong>LinkedIn</strong>
-                  <a href="https://www.linkedin.com/in/vishwajit-kumar-b15285331" target="_blank">vishwajit-kumar</a>
-                </div>
-              </div>
-              <div class="detail-item">
-                <span class="detail-icon">🐙</span>
-                <div>
-                  <strong>GitHub</strong>
-                  <a href="https://github.com/vishwajit-create" target="_blank">@vishwajit-create</a>
-                </div>
-              </div>
-              <div class="detail-item">
-                <span class="detail-icon">⚡</span>
-                <div>
-                  <strong>Status</strong>
-                  <span style="color:#4ade80">Open to Internships</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Stats Row -->
-        <div class="stats-row reveal-up" style="--delay:0.3s">
-          <div class="stat-box">
-            <span class="stat-num" id="about-repos">8</span>
-            <span class="stat-lbl">Repositories</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-num" id="about-followers">0</span>
-            <span class="stat-lbl">Followers</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-num">2+</span>
-            <span class="stat-lbl">Live Projects</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-num">100%</span>
-            <span class="stat-lbl">Dedication</span>
+        
+        <div id="salons-grid" class="salons-grid">
+          <!-- Dynamic Salon Cards Rendered Here -->
+          <div class="empty-state">
+            <div class="spinner"></div>
+            <p>Loading verified salons from Firestore...</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ─── SKILLS ──────────────────────────────────── -->
-    <section id="skills" class="section section-alt">
+    <!-- ─────────────────────────────────────────────────────────────
+         2. MY APPOINTMENTS VIEW (CUSTOMER)
+    ───────────────────────────────────────────────────────────── -->
+    <section id="view-my-appointments" class="view-section">
       <div class="container">
-        <div class="section-header reveal-up">
-          <span class="section-badge">Technical Skills</span>
-          <h2>Skills & Expertise</h2>
-          <p>A curated toolkit spanning web development, automation, and databases.</p>
+        <div class="section-header">
+          <h2>My Bookings & History</h2>
+          <p>Track live approval status of your salon appointments.</p>
         </div>
 
-        <!-- Skill Ring Cards -->
-        <div class="skill-rings-grid">
-          <div class="skill-ring-card reveal-up" style="--delay:0.1s" data-pct="85">
-            <div class="ring-wrap">
-              <svg class="ring-svg" viewBox="0 0 100 100">
-                <circle class="ring-bg" cx="50" cy="50" r="44"/>
-                <circle class="ring-fill" cx="50" cy="50" r="44" data-pct="85"/>
-                <defs>
-                  <linearGradient id="grad0" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#3b82f6"/>
-                    <stop offset="100%" stop-color="#06b6d4"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ring-icon">🐍</div>
-            </div>
-            <h4>Python</h4>
-            <div class="skill-tags">
-              <span>Automation</span><span>Scripting</span><span>Bots</span><span>Data</span>
-            </div>
-            <span class="ring-pct">85%</span>
-          </div>
-
-          <div class="skill-ring-card reveal-up" style="--delay:0.2s">
-            <div class="ring-wrap">
-              <svg class="ring-svg" viewBox="0 0 100 100">
-                <circle class="ring-bg" cx="50" cy="50" r="44"/>
-                <circle class="ring-fill" cx="50" cy="50" r="44" data-pct="80" style="--grad:url(#grad1)"/>
-                <defs>
-                  <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#a855f7"/>
-                    <stop offset="100%" stop-color="#ec4899"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ring-icon">🌐</div>
-            </div>
-            <h4>Web Dev</h4>
-            <div class="skill-tags">
-              <span>HTML5</span><span>CSS3</span><span>JavaScript</span>
-            </div>
-            <span class="ring-pct">80%</span>
-          </div>
-
-          <div class="skill-ring-card reveal-up" style="--delay:0.3s">
-            <div class="ring-wrap">
-              <svg class="ring-svg" viewBox="0 0 100 100">
-                <circle class="ring-bg" cx="50" cy="50" r="44"/>
-                <circle class="ring-fill" cx="50" cy="50" r="44" data-pct="78" style="--grad:url(#grad2)"/>
-                <defs>
-                  <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#10b981"/>
-                    <stop offset="100%" stop-color="#06b6d4"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ring-icon">🗄️</div>
-            </div>
-            <h4>SQL / DB</h4>
-            <div class="skill-tags">
-              <span>MySQL</span><span>SQLite</span><span>PostgreSQL</span>
-            </div>
-            <span class="ring-pct">78%</span>
-          </div>
-
-          <div class="skill-ring-card reveal-up" style="--delay:0.4s">
-            <div class="ring-wrap">
-              <svg class="ring-svg" viewBox="0 0 100 100">
-                <circle class="ring-bg" cx="50" cy="50" r="44"/>
-                <circle class="ring-fill" cx="50" cy="50" r="44" data-pct="72" style="--grad:url(#grad3)"/>
-                <defs>
-                  <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#f59e0b"/>
-                    <stop offset="100%" stop-color="#ef4444"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ring-icon">📘</div>
-            </div>
-            <h4>TypeScript</h4>
-            <div class="skill-tags">
-              <span>Node.js</span><span>Express</span><span>REST API</span>
-            </div>
-            <span class="ring-pct">72%</span>
-          </div>
-
-          <div class="skill-ring-card reveal-up" style="--delay:0.5s">
-            <div class="ring-wrap">
-              <svg class="ring-svg" viewBox="0 0 100 100">
-                <circle class="ring-bg" cx="50" cy="50" r="44"/>
-                <circle class="ring-fill" cx="50" cy="50" r="44" data-pct="75" style="--grad:url(#grad4)"/>
-                <defs>
-                  <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#8b5cf6"/>
-                    <stop offset="100%" stop-color="#3b82f6"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ring-icon">🔧</div>
-            </div>
-            <h4>Tools</h4>
-            <div class="skill-tags">
-              <span>Git</span><span>VS Code</span><span>Linux</span>
-            </div>
-            <span class="ring-pct">75%</span>
-          </div>
-
-          <div class="skill-ring-card reveal-up" style="--delay:0.6s">
-            <div class="ring-wrap">
-              <svg class="ring-svg" viewBox="0 0 100 100">
-                <circle class="ring-bg" cx="50" cy="50" r="44"/>
-                <circle class="ring-fill" cx="50" cy="50" r="44" data-pct="68" style="--grad:url(#grad5)"/>
-                <defs>
-                  <linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#06b6d4"/>
-                    <stop offset="100%" stop-color="#10b981"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ring-icon">📊</div>
-            </div>
-            <h4>Data Analysis</h4>
-            <div class="skill-tags">
-              <span>Pandas</span><span>NumPy</span><span>Jupyter</span>
-            </div>
-            <span class="ring-pct">68%</span>
-          </div>
-        </div>
-
-        <!-- Tech Stack Overview -->
-        <div class="section-header reveal-up" style="margin-top:72px">
-          <h3 style="font-size:1.5rem">Technology Stack Overview</h3>
-        </div>
-        <div class="tech-stack-grid">
-          <div class="tech-card glass-card reveal-up" style="--delay:0.1s">
-            <div class="tech-card-header">
-              <div class="tc-icon" style="background:linear-gradient(135deg,#3b82f6,#06b6d4)">🐍</div>
-              <strong>Languages</strong>
-            </div>
-            <div class="tech-tags">
-              <span>Python</span><span>JavaScript</span><span>TypeScript</span><span>HTML5</span><span>CSS3</span><span>SQL</span>
-            </div>
-          </div>
-          <div class="tech-card glass-card reveal-up" style="--delay:0.2s">
-            <div class="tech-card-header">
-              <div class="tc-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899)">🗄️</div>
-              <strong>Databases</strong>
-            </div>
-            <div class="tech-tags">
-              <span>MySQL</span><span>SQLite</span><span>PostgreSQL</span><span>MongoDB</span>
-            </div>
-          </div>
-          <div class="tech-card glass-card reveal-up" style="--delay:0.3s">
-            <div class="tech-card-header">
-              <div class="tc-icon" style="background:linear-gradient(135deg,#10b981,#06b6d4)">⚙️</div>
-              <strong>Frameworks & Tools</strong>
-            </div>
-            <div class="tech-tags">
-              <span>Node.js</span><span>Express</span><span>Git</span><span>GitHub</span><span>VS Code</span><span>Vercel</span><span>Railway</span>
-            </div>
+        <div id="my-appointments-list" class="appointments-list">
+          <div class="empty-state">
+            <p>You haven't booked any appointments yet.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ─── PROJECTS ──────────────────────────────────── -->
-    <section id="projects" class="section">
+    <!-- ─────────────────────────────────────────────────────────────
+         3. SALON OWNER DASHBOARD VIEW
+    ───────────────────────────────────────────────────────────── -->
+    <section id="view-salon-owner" class="view-section">
       <div class="container">
-        <div class="section-header reveal-up">
-          <span class="section-badge">My Work</span>
-          <h2>Featured Projects</h2>
-          <p>Live from GitHub — updated automatically every visit.</p>
-        </div>
-        <div class="projects-filter reveal-up">
-          <button class="filter-btn active" data-filter="all">All</button>
-          <button class="filter-btn" data-filter="python">Python</button>
-          <button class="filter-btn" data-filter="html">HTML</button>
-          <button class="filter-btn" data-filter="javascript">JavaScript</button>
-          <button class="filter-btn" data-filter="typescript">TypeScript</button>
-        </div>
-        <div id="projects-grid" class="projects-grid">
-          <div class="loading-state">
-            <div class="loading-ring"></div>
-            <p>Fetching from GitHub...</p>
+        <!-- Salon Registration Form (Show if owner hasn't registered shop) -->
+        <div id="owner-registration-box" class="dashboard-card" style="display: none;">
+          <div class="card-header">
+            <h2>🏢 Register Your Salon / Beauty Parlour</h2>
+            <p>List your shop on Urban Hair to reach thousands of customers in your city.</p>
           </div>
-        </div>
-        <div class="reveal-up" style="text-align:center;margin-top:40px">
-          <a href="https://github.com/vishwajit-create" target="_blank" class="btn btn-primary">
-            View All on GitHub
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-left:6px"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-          </a>
-        </div>
-      </div>
-    </section>
+          <form id="form-register-salon" class="form-grid">
+            <div class="form-group">
+              <label>Salon / Parlour Name *</label>
+              <input type="text" id="reg-salon-name" required placeholder="e.g. Elegant Glow Beauty Studio" />
+            </div>
+            <div class="form-group">
+              <label>Category *</label>
+              <select id="reg-salon-cat" required>
+                <option value="Hair Styling">Hair & Styling</option>
+                <option value="Beauty & Makeup">Beauty & Makeup</option>
+                <option value="Spa & Massage">Spa & Massage</option>
+                <option value="Nail Care">Nail Care & Grooming</option>
+                <option value="Unisex Salon">Unisex Super Salon</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>City *</label>
+              <input type="text" id="reg-salon-city" required placeholder="e.g. Mumbai" />
+            </div>
+            <div class="form-group">
+              <label>Contact Phone Number *</label>
+              <input type="tel" id="reg-salon-phone" required placeholder="+91 9876543210" />
+            </div>
+            <div class="form-group full-width">
+              <label>Full Address / Location *</label>
+              <textarea id="reg-salon-address" rows="2" required placeholder="Shop No. 12, Ground Floor, Central Mall..."></textarea>
+            </div>
 
-    <!-- ─── GITHUB ──────────────────────────────────── -->
-    <section id="github" class="section section-alt">
-      <div class="container">
-        <div class="section-header reveal-up">
-          <span class="section-badge">GitHub Activity</span>
-          <h2>My GitHub Stats</h2>
-        </div>
-        <div class="github-dashboard">
-          <div class="gh-profile-card glass-card reveal-up" style="--delay:0.1s">
-            <div class="gh-avatar-wrap">
-              <img id="gh-stats-avatar" src="https://avatars.githubusercontent.com/u/227098699?v=4" alt="Vishwajit Kumar" />
-            </div>
-            <h3 id="gh-name">Vishwajit Kumar</h3>
-            <p id="gh-bio" class="gh-bio">Student Developer | Python | Web | SQL</p>
-            <a href="https://github.com/vishwajit-create" target="_blank" id="gh-link" class="gh-handle">@vishwajit-create</a>
-            <div class="gh-stats-mini">
-              <div><span id="gh-repos">8</span><small>Repos</small></div>
-              <div><span id="gh-followers">0</span><small>Followers</small></div>
-              <div><span id="gh-following">1</span><small>Following</small></div>
-              <div><span id="gh-stars">0</span><small>Stars</small></div>
-            </div>
-          </div>
-          <div class="gh-cards reveal-up" style="--delay:0.2s">
-            <div class="gh-img-card glass-card">
-              <img src="https://github-readme-stats.vercel.app/api?username=vishwajit-create&show_icons=true&theme=tokyonight&hide_border=true&bg_color=00000000&text_color=e2e8f0&title_color=3b82f6&icon_color=06b6d4" alt="GitHub Stats" loading="lazy" />
-            </div>
-            <div class="gh-img-card glass-card">
-              <img src="https://github-readme-streak-stats.herokuapp.com/?user=vishwajit-create&theme=tokyonight&hide_border=true&background=00000000&stroke=3b82f6&ring=3b82f6&fire=f59e0b&currStreakLabel=e2e8f0" alt="GitHub Streak" loading="lazy" />
-            </div>
-            <div class="gh-img-card glass-card gh-langs">
-              <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=vishwajit-create&layout=compact&theme=tokyonight&hide_border=true&bg_color=00000000&text_color=e2e8f0&title_color=3b82f6" alt="Top Languages" loading="lazy" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─── CONTACT ──────────────────────────────────── -->
-    <section id="contact" class="section">
-      <div class="container">
-        <div class="section-header reveal-up">
-          <span class="section-badge">Get In Touch</span>
-          <h2>Let's Connect</h2>
-          <p>I'm open to internships, collaborations, and exciting opportunities!</p>
-        </div>
-        <div class="contact-grid">
-          <div class="contact-left reveal-up" style="--delay:0.1s">
-            <div class="contact-info-card glass-card">
-              <div class="ci-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></div>
-              <div>
-                <strong>LinkedIn</strong>
-                <a href="https://www.linkedin.com/in/vishwajit-kumar-b15285331" target="_blank">vishwajit-kumar-b15285331</a>
-              </div>
-            </div>
-            <div class="contact-info-card glass-card">
-              <div class="ci-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></div>
-              <div>
-                <strong>GitHub</strong>
-                <a href="https://github.com/vishwajit-create" target="_blank">@vishwajit-create</a>
-              </div>
-            </div>
-            <div class="contact-info-card glass-card">
-              <div class="ci-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/></svg></div>
-              <div>
-                <strong>Email</strong>
-                <a href="mailto:vishwajit@example.com" id="contact-email-link">vishwajit@example.com</a>
-              </div>
-            </div>
-          </div>
-          <div class="contact-form-wrap glass-card reveal-up" style="--delay:0.2s">
-            <h3>Send a Message</h3>
-            <form id="contact-form">
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="fname">Your Name</label>
-                  <input type="text" id="fname" name="name" placeholder="John Doe" required />
-                </div>
-                <div class="form-group">
-                  <label for="femail">Your Email</label>
-                  <input type="email" id="femail" name="email" placeholder="john@example.com" required />
+            <!-- Dynamic Services Creator -->
+            <div class="form-group full-width">
+              <label>Salon Services & Pricing *</label>
+              <p class="help-text">Add services customers can select when booking an appointment.</p>
+              
+              <div id="services-builder" class="services-builder">
+                <div class="service-row">
+                  <input type="text" class="srv-name" placeholder="Service Name (e.g. Haircut & Styling)" required />
+                  <input type="number" class="srv-price" placeholder="Price (₹)" required />
+                  <input type="number" class="srv-duration" placeholder="Duration (mins)" required />
+                  <button type="button" class="btn-remove-row" onclick="this.parentElement.remove()">✕</button>
                 </div>
               </div>
-              <div class="form-group">
-                <label for="fsubject">Subject</label>
-                <input type="text" id="fsubject" name="subject" placeholder="Internship / Collaboration / Hello!" required />
+              <button type="button" id="btn-add-service-row" class="btn-secondary btn-sm">+ Add Another Service</button>
+            </div>
+
+            <div class="form-actions full-width">
+              <button type="submit" class="btn-primary btn-lg">Submit Salon for Admin Approval</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Salon Owner Active Dashboard (Show if owner registered shop) -->
+        <div id="owner-active-dash" class="dashboard-wrapper" style="display: none;">
+          <!-- Shop Header Banner -->
+          <div class="shop-banner-card">
+            <div class="shop-banner-info">
+              <h2 id="owner-shop-name">My Salon</h2>
+              <p id="owner-shop-location">Address</p>
+              <div class="status-row">
+                <span id="owner-shop-status-badge" class="badge badge-warning">Pending Approval</span>
+                <span id="owner-shop-cat-badge" class="badge badge-info">Hair & Styling</span>
               </div>
-              <div class="form-group">
-                <label for="fmessage">Message</label>
-                <textarea id="fmessage" name="message" rows="4" placeholder="Your message here..." required></textarea>
+            </div>
+          </div>
+
+          <!-- Appointments Management Grid -->
+          <div class="dashboard-card">
+            <div class="card-header-row">
+              <h3>📥 Incoming Appointment Requests</h3>
+              <span id="owner-appts-count" class="count-tag">0 Requests</span>
+            </div>
+            
+            <div id="owner-appointments-list" class="appointments-list">
+              <div class="empty-state">
+                <p>No incoming appointment requests right now.</p>
               </div>
-              <button type="submit" class="btn btn-primary btn-full" id="send-btn">
-                <span id="send-text">Send Message 🚀</span>
-                <span id="send-spin" class="hidden">Sending...</span>
-              </button>
-              <div id="form-success" class="success-msg hidden">✅ Message saved! I'll get back to you soon.</div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- ─────────────────────────────────────────────────────────────
+         4. SUPER ADMIN DASHBOARD VIEW
+    ───────────────────────────────────────────────────────────── -->
+    <section id="view-super-admin" class="view-section">
+      <div class="container">
+        <div class="admin-header">
+          <h2>🛡️ Super Admin Control Center</h2>
+          <p>Oversee all registered salons, manage verification requests, and view system metrics.</p>
+        </div>
+
+        <!-- Metric Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-icon">🏬</span>
+            <div class="stat-info">
+              <span id="admin-stat-total-salons" class="stat-val">0</span>
+              <span class="stat-label">Total Salons</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">⏳</span>
+            <div class="stat-info">
+              <span id="admin-stat-pending-salons" class="stat-val">0</span>
+              <span class="stat-label">Pending Approval</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">📅</span>
+            <div class="stat-info">
+              <span id="admin-stat-total-appts" class="stat-val">0</span>
+              <span class="stat-label">Total Bookings</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Salon Verifications Section -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h3>⏳ Pending Salon Verification Queue</h3>
+            <p>Review new salon registrations and approve them to go live on the app.</p>
+          </div>
+          
+          <div id="admin-pending-salons-list" class="salons-admin-list">
+            <div class="empty-state">
+              <p>No pending salon registration requests.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <div class="footer-inner">
-        <span class="footer-logo">Vishwajit Kumar</span>
-        <span class="footer-copy">Built with ❤️ · 2026</span>
-        <div class="footer-links">
-          <a href="https://github.com/vishwajit-create" target="_blank">GitHub</a>
-          <a href="https://www.linkedin.com/in/vishwajit-kumar-b15285331" target="_blank">LinkedIn</a>
+  <!-- ─────────────────────────────────────────────────────────────
+       AUTHENTICATION MODAL (Google Sign-In & Phone OTP)
+  ───────────────────────────────────────────────────────────── -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-card">
+      <button id="btn-close-auth-modal" class="modal-close">✕</button>
+
+      <div class="modal-header">
+        <span class="modal-icon">🔐</span>
+        <h2>Welcome to Urban Hair</h2>
+        <p>Sign in using your Google account or Phone OTP to continue.</p>
+      </div>
+
+      <!-- Account Role Switch on Sign-In -->
+      <div class="role-selector-box">
+        <label>I want to sign in as:</label>
+        <div class="role-options">
+          <label class="role-opt">
+            <input type="radio" name="auth-role" value="customer" checked />
+            <span>Customer (Book Salon)</span>
+          </label>
+          <label class="role-opt">
+            <input type="radio" name="auth-role" value="salon_owner" />
+            <span>Salon / Parlour Owner</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" data-auth-mode="google">Google Sign-In</button>
+        <button class="auth-tab-btn" data-auth-mode="phone">Phone Authentication</button>
+      </div>
+
+      <!-- Auth Option 1: Google Sign-In -->
+      <div id="auth-panel-google" class="auth-panel active">
+        <button id="btn-google-login" class="btn-google-auth">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+      </div>
+
+      <!-- Auth Option 2: Phone Authentication -->
+      <div id="auth-panel-phone" class="auth-panel">
+        <div id="phone-step-1">
+          <div class="form-group">
+            <label>Phone Number (with Country Code)</label>
+            <input type="tel" id="input-phone-number" placeholder="+91 9876543210" value="+91 " />
+          </div>
+          <!-- Recaptcha Container -->
+          <div id="recaptcha-container"></div>
+          <button id="btn-send-otp" class="btn-primary full-width">Send Verification OTP</button>
+        </div>
+
+        <div id="phone-step-2" style="display: none;">
+          <div class="form-group">
+            <label>Enter 6-Digit OTP Code</label>
+            <input type="text" id="input-otp-code" placeholder="123456" maxlength="6" />
+          </div>
+          <button id="btn-verify-otp" class="btn-primary full-width">Verify & Sign In</button>
         </div>
       </div>
     </div>
-  </footer>
+  </div>
 
-  <script src="app.js"></script>
+  <!-- ─────────────────────────────────────────────────────────────
+       BOOK APPOINTMENT MODAL (CUSTOMER)
+  ───────────────────────────────────────────────────────────── -->
+  <div id="booking-modal" class="modal-overlay">
+    <div class="modal-card">
+      <button id="btn-close-booking-modal" class="modal-close">✕</button>
+
+      <div class="modal-header">
+        <span class="modal-icon">📅</span>
+        <h2 id="modal-salon-title">Book Appointment</h2>
+        <p id="modal-salon-subtitle">Select your preferred service, date and time slot.</p>
+      </div>
+
+      <form id="form-book-appointment">
+        <input type="hidden" id="book-salon-id" />
+        <input type="hidden" id="book-owner-id" />
+
+        <div class="form-group">
+          <label>Select Service *</label>
+          <select id="book-service-select" required>
+            <!-- Services populated dynamically -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Preferred Date *</label>
+          <input type="date" id="book-date" required />
+        </div>
+
+        <div class="form-group">
+          <label>Time Slot *</label>
+          <select id="book-time-slot" required>
+            <option value="10:00 AM">10:00 AM - 11:00 AM</option>
+            <option value="11:30 AM">11:30 AM - 12:30 PM</option>
+            <option value="02:00 PM">02:00 PM - 03:00 PM</option>
+            <option value="04:00 PM">04:00 PM - 05:00 PM</option>
+            <option value="06:00 PM">06:00 PM - 07:00 PM</option>
+          </select>
+        </div>
+
+        <div class="booking-summary-box">
+          <div class="summary-line">
+            <span>Price:</span>
+            <strong id="summary-price">₹0</strong>
+          </div>
+          <div class="summary-line">
+            <span>Duration:</span>
+            <strong id="summary-duration">0 mins</strong>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary full-width btn-lg">Confirm Appointment Booking</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Logic Module -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>

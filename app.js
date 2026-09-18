@@ -1,553 +1,658 @@
-'use strict';
+// Urban Hair App Core Application Logic
+import { 
+  auth, 
+  db, 
+  googleProvider, 
+  signInWithPopup, 
+  RecaptchaVerifier, 
+  signInWithPhoneNumber, 
+  signOut, 
+  onAuthStateChanged,
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  addDoc, 
+  serverTimestamp 
+} from "./firebase-config.js";
 
-// ─── Config ──────────────────────────────────────────────────────
-const CONFIG = {
-  GITHUB_USERNAME: 'vishwajit-create',
-  GITHUB_BASE: 'https://api.github.com',
-  GOOGLE_SHEETS_URL: 'https://script.google.com/macros/s/AKfycby1Uc706O9LkJ9Uhyd5QhMNAR5bgJE5Lg31Iy5fxunHmRyuIrWsA_Y7l9UIxdjFWNX0dg/exec',
-  TYPEWRITER_STRINGS: [
-    'Student Developer 👨‍💻',
-    'Python Bot Builder 🤖',
-    'Web Developer 🌐',
-    'SQL Enthusiast 🗄️',
-    'Open Source Contributor 💡',
-  ],
-  LANG_COLORS: {
-    Python: '#3572A5', JavaScript: '#f1e05a', TypeScript: '#2b7489',
-    HTML: '#e34c26', CSS: '#563d7c', 'Jupyter Notebook': '#DA5B0B',
-    Shell: '#89e051', default: '#8b949e',
-  },
-  REPO_ICONS: {
-    Python: '🐍', JavaScript: '⚡', TypeScript: '📘',
-    HTML: '🌐', CSS: '🎨', 'Jupyter Notebook': '📊', default: '📁',
-  },
-};
+// Global App State
+let currentUser = null;
+let userProfile = null;
+let recaptchaVerifier = null;
+let confirmationResult = null;
+let unsubSalons = null;
+let unsubMyBookings = null;
+let unsubOwnerBookings = null;
+let unsubAdminSalons = null;
 
-const state = {
-  repos: [], filteredRepos: [], filter: 'all',
-  messages: JSON.parse(localStorage.getItem('vk_msgs') || '[]'),
-};
+// DOM Elements
+const authModal = document.getElementById("auth-modal");
+const bookingModal = document.getElementById("booking-modal");
 
-// ─── INIT ─────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  initIntro();
-  initScrollProgress();
-  initNavCanvas();
-  initNavbar();
-  initMobileMenu();
-  initTypewriter();
-  initReveal();
-  initSkillRings();
-  initProjectFilter();
-  initContactForm();
-  fetchGitHub();
+// Navigation View Switching
+const navButtons = document.querySelectorAll(".nav-btn");
+const viewSections = document.querySelectorAll(".view-section");
+
+function switchView(targetId) {
+  viewSections.forEach(sec => sec.classList.remove("active"));
+  navButtons.forEach(btn => btn.classList.remove("active"));
+  
+  const activeSec = document.getElementById(targetId);
+  const activeBtn = document.querySelector(`.nav-btn[data-target="${targetId}"]`);
+  
+  if (activeSec) activeSec.classList.add("active");
+  if (activeBtn) activeBtn.classList.add("active");
+}
+
+navButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.getAttribute("data-target");
+    switchView(target);
+  });
 });
 
-// ─── INTRO ANIMATION ─────────────────────────────────────────────
-function initIntro() {
-  const overlay = document.getElementById('intro-overlay');
-  const canvas = document.getElementById('intro-canvas');
-  const skip = document.getElementById('skip-intro');
-  if (!overlay || !canvas) return;
+// Modal Helpers
+function openModal(modal) {
+  if (modal) modal.classList.add("active");
+}
+function closeModal(modal) {
+  if (modal) modal.classList.remove("active");
+}
 
-  const ctx = canvas.getContext('2d');
-  let W = canvas.width = window.innerWidth;
-  let H = canvas.height = window.innerHeight;
-  let animId;
+document.getElementById("btn-open-auth")?.addEventListener("click", () => openModal(authModal));
+document.getElementById("btn-close-auth-modal")?.addEventListener("click", () => closeModal(authModal));
+document.getElementById("btn-close-booking-modal")?.addEventListener("click", () => closeModal(bookingModal));
 
-  // Particles for intro
-  const pts = Array.from({ length: 80 }, () => ({
-    x: Math.random() * W, y: Math.random() * H,
-    vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
-    r: Math.random() * 2 + 0.5,
-  }));
+// Auth Tab Switching
+const authTabBtns = document.querySelectorAll(".auth-tab-btn");
+authTabBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    authTabBtns.forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".auth-panel").forEach(p => p.classList.remove("active"));
+    
+    btn.classList.add("active");
+    const mode = btn.getAttribute("data-auth-mode");
+    document.getElementById(`auth-panel-${mode}`)?.classList.add("active");
+  });
+});
 
-  function drawIntro() {
-    ctx.clearRect(0, 0, W, H);
+// -------------------------------------------------------------
+// 1. AUTHENTICATION (Google Sign-In & Phone OTP)
+// -------------------------------------------------------------
 
-    // Draw connections
-    for (let i = 0; i < pts.length; i++) {
-      for (let j = i + 1; j < pts.length; j++) {
-        const dx = pts[i].x - pts[j].x;
-        const dy = pts[i].y - pts[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 120) {
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(59,130,246,${0.15 * (1 - dist / 120)})`;
-          ctx.lineWidth = 0.6;
-          ctx.moveTo(pts[i].x, pts[i].y);
-          ctx.lineTo(pts[j].x, pts[j].y);
-          ctx.stroke();
-        }
-      }
-      pts[i].x += pts[i].vx;
-      pts[i].y += pts[i].vy;
-      if (pts[i].x < 0 || pts[i].x > W) pts[i].vx *= -1;
-      if (pts[i].y < 0 || pts[i].y > H) pts[i].vy *= -1;
+// Get Selected Auth Role
+function getSelectedAuthRole() {
+  const radio = document.querySelector('input[name="auth-role"]:checked');
+  return radio ? radio.value : 'customer';
+}
 
-      ctx.beginPath();
-      ctx.arc(pts[i].x, pts[i].y, pts[i].r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(59,130,246,0.5)';
-      ctx.fill();
+// Ensure User Document in Firestore
+async function syncUserProfile(user, fallbackRole = 'customer') {
+  if (!user) return null;
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+
+  if (snap.exists()) {
+    return snap.data();
+  } else {
+    // Determine default role (special handle for super admin)
+    let role = fallbackRole;
+    if (user.email === 'admin@urbanhair.app' || user.email === 'vishw_8mxgyao@gmail.com') {
+      role = 'super_admin';
     }
-    animId = requestAnimationFrame(drawIntro);
+    
+    const profile = {
+      uid: user.uid,
+      displayName: user.displayName || user.phoneNumber || "User",
+      email: user.email || "",
+      phoneNumber: user.phoneNumber || "",
+      role: role,
+      createdAt: new Date().toISOString()
+    };
+    await setDoc(userRef, profile);
+    return profile;
   }
-
-  drawIntro();
-
-  function dismiss() {
-    cancelAnimationFrame(animId);
-    overlay.classList.add('fade-out');
-    setTimeout(() => { overlay.style.display = 'none'; }, 900);
-  }
-
-  skip.addEventListener('click', dismiss);
-  setTimeout(dismiss, 3200);
-
-  window.addEventListener('resize', () => {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  });
 }
 
-// ─── SPARKLE PARTICLE CANVAS ────────────────────────────────────
-function initNavCanvas() {
-  const canvas = document.getElementById('bg-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
-  let W, H, pts, stars = [], lastStar = 0;
-
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    const count = Math.min(Math.floor(W * H / 10000), 90);
-    pts = Array.from({ length: count }, () => ({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      r: Math.random() * 2 + 0.8,
-      // each particle has its own color tint
-      hue: [240, 200, 280, 320][Math.floor(Math.random() * 4)],
-    }));
-  }
-
-  resize();
-  window.addEventListener('resize', resize);
-
-  let mx = -9999, my = -9999;
-  window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; }, { passive: true });
-
-  // Create a shooting star
-  function spawnStar() {
-    const angle = Math.random() * Math.PI * 0.5 + Math.PI * 0.1;
-    stars.push({
-      x: Math.random() * W * 0.8,
-      y: Math.random() * H * 0.4,
-      vx: Math.cos(angle) * (3 + Math.random() * 4),
-      vy: Math.sin(angle) * (1.5 + Math.random() * 2),
-      len: 80 + Math.random() * 120,
-      life: 1,
-    });
-  }
-
-  function draw(ts) {
-    ctx.clearRect(0, 0, W, H);
-
-    // ── Shooting stars ──
-    if (ts - lastStar > 3500 + Math.random() * 3000) {
-      spawnStar(); lastStar = ts;
-    }
-    stars = stars.filter(s => s.life > 0);
-    stars.forEach(s => {
-      const tail = { x: s.x - s.vx * (s.len / 6), y: s.y - s.vy * (s.len / 6) };
-      const grad = ctx.createLinearGradient(tail.x, tail.y, s.x, s.y);
-      grad.addColorStop(0, 'transparent');
-      grad.addColorStop(1, `rgba(200,220,255,${s.life * 0.85})`);
-      ctx.beginPath();
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = 1.5;
-      ctx.moveTo(tail.x, tail.y);
-      ctx.lineTo(s.x, s.y);
-      ctx.stroke();
-      // glow head
-      const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 4);
-      grd.addColorStop(0, `rgba(220,230,255,${s.life})`);
-      grd.addColorStop(1, 'transparent');
-      ctx.beginPath();
-      ctx.fillStyle = grd;
-      ctx.arc(s.x, s.y, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      s.x += s.vx; s.y += s.vy; s.life -= 0.012;
-    });
-
-    // ── Particles ──
-    for (let i = 0; i < pts.length; i++) {
-      const p = pts[i];
-
-      // Mouse attraction (gentle)
-      const dmx = mx - p.x, dmy = my - p.y;
-      const dm = Math.sqrt(dmx * dmx + dmy * dmy);
-      if (dm < 160 && dm > 1) {
-        p.x += (dmx / dm) * 0.25;
-        p.y += (dmy / dm) * 0.25;
-      }
-
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0) { p.x = 0; p.vx *= -1; }
-      if (p.x > W) { p.x = W; p.vx *= -1; }
-      if (p.y < 0) { p.y = 0; p.vy *= -1; }
-      if (p.y > H) { p.y = H; p.vy *= -1; }
-
-      // Draw connection lines
-      for (let j = i + 1; j < pts.length; j++) {
-        const q = pts[j];
-        const dx = p.x - q.x, dy = p.y - q.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 130) {
-          const a = (1 - dist / 130) * 0.25;
-          ctx.beginPath();
-          ctx.strokeStyle = `hsla(${p.hue},80%,70%,${a})`;
-          ctx.lineWidth = 0.7;
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(q.x, q.y);
-          ctx.stroke();
-        }
-      }
-
-      // Glow dot
-      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
-      grd.addColorStop(0, `hsla(${p.hue},90%,75%,0.9)`);
-      grd.addColorStop(0.5, `hsla(${p.hue},80%,65%,0.3)`);
-      grd.addColorStop(1, 'transparent');
-      ctx.beginPath();
-      ctx.fillStyle = grd;
-      ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Solid centre
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${p.hue},90%,80%,0.95)`;
-      ctx.fill();
-    }
-
-    requestAnimationFrame(draw);
-  }
-
-  requestAnimationFrame(draw);
-}
-
-// ─── SCROLL PROGRESS BAR ─────────────────────────────────────────
-function initScrollProgress() {
-  const bar = document.getElementById('scroll-progress');
-  if (!bar) return;
-  window.addEventListener('scroll', () => {
-    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
-    bar.style.width = `${Math.min(pct * 100, 100)}%`;
-  }, { passive: true });
-}
-
-// ─── NAVBAR ──────────────────────────────────────────────────────
-function initNavbar() {
-  const nav = document.getElementById('navbar');
-  const links = document.querySelectorAll('.nav-links a');
-  const sections = document.querySelectorAll('section[id]');
-
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 20);
-
-    let curr = '';
-    sections.forEach(s => {
-      if (window.scrollY >= s.offsetTop - 100) curr = s.id;
-    });
-    links.forEach(l => {
-      l.style.color = l.getAttribute('href') === `#${curr}` ? 'var(--blue)' : '';
-    });
-  }, { passive: true });
-
-  links.forEach(l => l.addEventListener('click', e => {
-    e.preventDefault();
-    document.querySelector(l.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
-  }));
-
-  // Theme toggle (placeholder – toggles a class)
-  document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    document.body.classList.toggle('light');
-  });
-}
-
-// ─── MOBILE MENU ─────────────────────────────────────────────────
-function initMobileMenu() {
-  const menu = document.getElementById('mobile-menu');
-  const open = document.getElementById('hamburger');
-  const close = document.getElementById('close-menu');
-  if (!menu) return;
-  open?.addEventListener('click', () => menu.classList.add('open'));
-  close?.addEventListener('click', () => menu.classList.remove('open'));
-  menu.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', e => {
-      e.preventDefault();
-      menu.classList.remove('open');
-      document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
-    });
-  });
-}
-
-// ─── TYPEWRITER ──────────────────────────────────────────────────
-function initTypewriter() {
-  const el = document.getElementById('tw-text');
-  if (!el) return;
-  let si = 0, ci = 0, del = false;
-
-  (function type() {
-    const str = CONFIG.TYPEWRITER_STRINGS[si];
-    el.textContent = del ? str.slice(0, ci - 1) : str.slice(0, ci + 1);
-    del ? ci-- : ci++;
-    let wait = del ? 55 : 95;
-    if (!del && ci === str.length) { wait = 2200; del = true; }
-    else if (del && ci === 0) { del = false; si = (si + 1) % CONFIG.TYPEWRITER_STRINGS.length; wait = 300; }
-    setTimeout(type, wait);
-  })();
-}
-
-// ─── SCROLL REVEAL ───────────────────────────────────────────────
-function initReveal() {
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-  document.querySelectorAll('.reveal-up').forEach(el => obs.observe(el));
-}
-
-// ─── SKILL RINGS ─────────────────────────────────────────────────
-function initSkillRings() {
-  const circum = 2 * Math.PI * 44; // r=44
-
-  const gradMap = ['url(#grad0)','url(#grad1)','url(#grad2)','url(#grad3)','url(#grad4)','url(#grad5)'];
-
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const card = entry.target;
-      const fills = card.querySelectorAll('.ring-fill');
-      fills.forEach((fill, i) => {
-        const pct = parseInt(fill.getAttribute('data-pct') || '0');
-        const grad = gradMap[Array.from(card.closest('.skill-rings-grid')?.children || []).indexOf(card)] || gradMap[0];
-        fill.style.stroke = grad;
-        const offset = circum - (pct / 100) * circum;
-        setTimeout(() => { fill.style.strokeDashoffset = offset; }, 100);
-      });
-      obs.unobserve(card);
-    });
-  }, { threshold: 0.3 });
-
-  document.querySelectorAll('.skill-ring-card').forEach(c => obs.observe(c));
-}
-
-// ─── PROJECT FILTER ──────────────────────────────────────────────
-function initProjectFilter() {
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.filter = btn.dataset.filter;
-      state.filteredRepos = state.filter === 'all'
-        ? state.repos
-        : state.repos.filter(r => (r.language || '').toLowerCase().includes(state.filter));
-      renderProjects();
-    });
-  });
-}
-
-// ─── GITHUB FETCH ────────────────────────────────────────────────
-async function fetchGitHub() {
+// Google Sign-In Handler
+document.getElementById("btn-google-login")?.addEventListener("click", async () => {
   try {
-    const [uRes, rRes] = await Promise.all([
-      fetch(`${CONFIG.GITHUB_BASE}/users/${CONFIG.GITHUB_USERNAME}`),
-      fetch(`${CONFIG.GITHUB_BASE}/users/${CONFIG.GITHUB_USERNAME}/repos?sort=updated&per_page=30`),
-    ]);
-
-    if (uRes.ok) {
-      const u = await uRes.json();
-      populateProfile(u);
-    }
-
-    if (rRes.ok) {
-      const repos = await rRes.json();
-      const stars = repos.reduce((a, r) => a + (r.stargazers_count || 0), 0);
-      setText('gh-stars', stars);
-      state.repos = repos;
-      state.filteredRepos = repos;
-      renderProjects();
-    } else {
-      fallbackProjects();
-    }
-  } catch (e) {
-    console.warn('GitHub fetch failed, showing fallback data');
-    fallbackProjects();
+    const role = getSelectedAuthRole();
+    const result = await signInWithPopup(auth, googleProvider);
+    await syncUserProfile(result.user, role);
+    closeModal(authModal);
+  } catch (err) {
+    console.error("Google Auth Error:", err);
+    alert("Google Sign-In Failed: " + err.message);
   }
-}
+});
 
-function populateProfile(u) {
-  setText('gh-name', u.name || u.login || 'Vishwajit Kumar');
-  setText('gh-bio', u.bio || 'Student Developer | Python | Web | SQL');
-  setText('gh-repos', u.public_repos || 8);
-  setText('about-repos', u.public_repos || 8);
-  setText('gh-followers', u.followers || 0);
-  setText('about-followers', u.followers || 0);
-  setText('gh-following', u.following || 1);
-  const ghLink = document.getElementById('gh-link');
-  if (ghLink) ghLink.href = u.html_url;
-  if (u.email) {
-    const els = ['hero-email-link', 'contact-email-link'];
-    els.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.href = `mailto:${u.email}`; el.textContent = u.email; }
-    });
-  }
-  if (u.avatar_url) {
-    ['gh-avatar', 'gh-stats-avatar'].forEach(id => {
-      const img = document.getElementById(id);
-      if (img) { img.src = u.avatar_url; }
+// Setup Recaptcha for Phone Auth
+function initRecaptcha() {
+  if (!window.recaptchaVerifier) {
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      'size': 'invisible',
+      'callback': (response) => {
+        // reCAPTCHA solved
+      }
     });
   }
 }
 
-function setText(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
-}
-
-// ─── RENDER PROJECTS ─────────────────────────────────────────────
-function renderProjects() {
-  const grid = document.getElementById('projects-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-
-  const list = state.filteredRepos.filter(r => !r.fork);
-
-  if (!list.length) {
-    grid.innerHTML = `<div class="empty-state"><div class="empty-state-emoji">🔍</div><p>No repos for this filter.</p></div>`;
+// Phone Send OTP
+document.getElementById("btn-send-otp")?.addEventListener("click", async () => {
+  const phoneNum = document.getElementById("input-phone-number").value.trim();
+  if (!phoneNum || phoneNum.length < 10) {
+    alert("Please enter a valid phone number with country code (e.g. +91 9876543210)");
     return;
   }
 
-  list.slice(0, 9).forEach((repo, i) => {
-    const card = makeCard(repo, i);
-    grid.appendChild(card);
-  });
+  try {
+    initRecaptcha();
+    const appVerifier = window.recaptchaVerifier;
+    confirmationResult = await signInWithPhoneNumber(auth, phoneNum, appVerifier);
+    
+    document.getElementById("phone-step-1").style.display = "none";
+    document.getElementById("phone-step-2").style.display = "block";
+    alert("Verification OTP sent to " + phoneNum);
+  } catch (err) {
+    console.error("Phone Auth Error:", err);
+    alert("Failed to send SMS OTP: " + err.message);
+  }
+});
+
+// Phone Verify OTP
+document.getElementById("btn-verify-otp")?.addEventListener("click", async () => {
+  const otpCode = document.getElementById("input-otp-code").value.trim();
+  if (!otpCode || otpCode.length !== 6) {
+    alert("Please enter the 6-digit OTP code.");
+    return;
+  }
+
+  try {
+    const role = getSelectedAuthRole();
+    const result = await confirmationResult.confirm(otpCode);
+    await syncUserProfile(result.user, role);
+    closeModal(authModal);
+  } catch (err) {
+    console.error("OTP Verification Error:", err);
+    alert("Invalid OTP Code: " + err.message);
+  }
+});
+
+// Logout
+document.getElementById("btn-logout")?.addEventListener("click", () => {
+  signOut(auth);
+});
+
+// Auth State Observer
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  if (user) {
+    userProfile = await syncUserProfile(user);
+    updateUIForAuthenticatedUser(userProfile);
+  } else {
+    userProfile = null;
+    updateUIForGuest();
+  }
+});
+
+function updateUIForAuthenticatedUser(profile) {
+  document.getElementById("btn-open-auth").style.display = "none";
+  const userChip = document.getElementById("user-info-chip");
+  userChip.style.display = "flex";
+  
+  document.getElementById("user-name-display").textContent = profile.displayName || profile.phoneNumber || "User";
+  document.getElementById("user-role-badge").textContent = profile.role.replace('_', ' ');
+
+  // Show dynamic navigation links based on user role
+  document.getElementById("nav-my-bookings").style.display = "inline-block";
+  
+  if (profile.role === 'salon_owner' || profile.role === 'super_admin') {
+    document.getElementById("nav-owner-dash").style.display = "inline-block";
+    loadOwnerDashboard();
+  } else {
+    document.getElementById("nav-owner-dash").style.display = "none";
+  }
+
+  if (profile.role === 'super_admin') {
+    document.getElementById("nav-admin-dash").style.display = "inline-block";
+    loadSuperAdminDashboard();
+  } else {
+    document.getElementById("nav-admin-dash").style.display = "none";
+  }
+
+  loadMyBookings();
 }
 
-function makeCard(repo, idx) {
-  const lang = repo.language || 'Unknown';
-  const color = CONFIG.LANG_COLORS[lang] || CONFIG.LANG_COLORS.default;
-  const icon = CONFIG.REPO_ICONS[lang] || CONFIG.REPO_ICONS.default;
-  const desc = repo.description || 'No description provided.';
-  const topics = repo.topics || [];
-
-  const card = document.createElement('div');
-  card.className = 'project-card';
-  card.style.animationDelay = `${idx * 0.06}s`;
-
-  card.innerHTML = `
-    <div class="proj-header">
-      <span class="proj-icon">${icon}</span>
-      <div class="proj-links">
-        <a href="${repo.html_url}" target="_blank" rel="noopener" class="proj-link" title="GitHub">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-        </a>
-        ${repo.homepage ? `<a href="${repo.homepage}" target="_blank" rel="noopener" class="proj-link" title="Live Demo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        </a>` : ''}
-      </div>
-    </div>
-    <div class="proj-name">${esc(repo.name.replace(/[-_]/g, ' '))}</div>
-    <div class="proj-desc">${esc(desc.slice(0, 120))}${desc.length > 120 ? '…' : ''}</div>
-    <div class="proj-meta">
-      ${lang !== 'Unknown' ? `<div class="proj-lang"><div class="lang-dot" style="background:${color}"></div>${lang}</div>` : ''}
-      ${repo.stargazers_count ? `<div class="proj-stars"><svg viewBox="0 0 24 24" fill="#f59e0b" width="13" height="13"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${repo.stargazers_count}</div>` : ''}
-    </div>
-    ${topics.length ? `<div class="proj-tag-list">${topics.slice(0, 4).map(t => `<span class="proj-tag">${esc(t)}</span>`).join('')}</div>` : ''}
-  `;
-
-  return card;
+function updateUIForGuest() {
+  document.getElementById("btn-open-auth").style.display = "inline-block";
+  document.getElementById("user-info-chip").style.display = "none";
+  document.getElementById("nav-my-bookings").style.display = "none";
+  document.getElementById("nav-owner-dash").style.display = "none";
+  document.getElementById("nav-admin-dash").style.display = "none";
+  switchView("view-customer");
 }
 
-// ─── FALLBACK PROJECTS ───────────────────────────────────────────
-function fallbackProjects() {
-  state.repos = [
-    { name: 'Urban-hair-plaza-website', description: 'Urban Hair Plaza — full salon website with modern UI built with HTML/CSS/JS.', language: 'HTML', html_url: 'https://github.com/vishwajit-create/Urban-hair-plaza-website-', stargazers_count: 0, forks_count: 0, topics: ['html','css','salon'], homepage: null, fork: false },
-    { name: 'urban-hairplaza', description: 'Urban Hair Plaza — responsive hair salon booking and services platform.', language: 'HTML', html_url: 'https://github.com/vishwajit-create/urban-hairplaza', stargazers_count: 0, forks_count: 0, topics: ['html','booking'], homepage: null, fork: false },
-    { name: 'monitor-website', description: 'Python bot that pings websites to keep them alive on Railway or Render — prevents sleeping.', language: 'Python', html_url: 'https://github.com/vishwajit-create/monitor-website', stargazers_count: 0, forks_count: 0, topics: ['python','bot','automation'], homepage: null, fork: false },
-    { name: 'kshitij-sonal-website', description: 'Personal academic website for Kshitij Sonal — Researcher & Economist. Built with Node.js + Express.', language: 'JavaScript', html_url: 'https://github.com/vishwajit-create/kshitij-sonal-website', stargazers_count: 0, forks_count: 0, topics: ['nodejs','express'], homepage: null, fork: false },
-    { name: 'Blogspot', description: 'Blog web application with live demo deployed on Vercel.', language: 'HTML', html_url: 'https://github.com/vishwajit-create/Blogspot', stargazers_count: 0, forks_count: 0, topics: ['html','blog','vercel'], homepage: 'https://project-4tmsy.vercel.app', fork: false },
-    { name: 'hairsalonapp', description: 'Full-featured hair salon booking application built with TypeScript, deployed on Vercel.', language: 'TypeScript', html_url: 'https://github.com/vishwajit-create/hairsalonapp', stargazers_count: 0, forks_count: 0, topics: ['typescript','booking','vercel'], homepage: 'https://hairsalonapp-puce.vercel.app', fork: false },
-    { name: 'UHP-Project', description: 'Urban Hair Plaza project — core backend and business logic.', language: 'JavaScript', html_url: 'https://github.com/vishwajit-create/UHP-Project', stargazers_count: 0, forks_count: 0, topics: ['javascript'], homepage: null, fork: false },
-  ];
-  state.filteredRepos = state.repos;
-  renderProjects();
-}
+// -------------------------------------------------------------
+// 2. CUSTOMER VIEW: EXPLORE SALONS & BOOKING
+// -------------------------------------------------------------
 
-// ─── CONTACT FORM ────────────────────────────────────────────────
-function initContactForm() {
-  const form = document.getElementById('contact-form');
-  if (!form) return;
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const btnText = document.getElementById('send-text');
-    const spin = document.getElementById('send-spin');
-    const success = document.getElementById('form-success');
+function listenToSalons() {
+  const salonsGrid = document.getElementById("salons-grid");
+  const salonsCountLabel = document.getElementById("salons-count-label");
+  const searchInput = document.getElementById("input-search-salon");
+  const cityFilter = document.getElementById("filter-city");
 
-    btnText?.classList.add('hidden');
-    spin?.classList.remove('hidden');
+  const q = query(collection(db, "salons"), where("status", "==", "approved"));
+  
+  if (unsubSalons) unsubSalons();
 
-    const formData = {
-      name: form.name.value,
-      email: form.email.value,
-      subject: form.subject.value,
-      message: form.message.value,
-    };
-
-    // Save to localStorage backup
-    state.messages.push({
-      ...formData,
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
+  unsubSalons = onSnapshot(q, (snapshot) => {
+    const salons = [];
+    snapshot.forEach(docSnap => {
+      salons.push({ id: docSnap.id, ...docSnap.data() });
     });
-    localStorage.setItem('vk_msgs', JSON.stringify(state.messages));
 
-    // Send to Google Sheets Apps Script
-    fetch(CONFIG.GOOGLE_SHEETS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-      body: JSON.stringify(formData),
-    })
-      .then(() => {
-        btnText?.classList.remove('hidden');
-        spin?.classList.add('hidden');
-        success?.classList.remove('hidden');
-        form.reset();
-        setTimeout(() => success?.classList.add('hidden'), 5000);
-      })
-      .catch(err => {
-        console.error('Submission error:', err);
-        btnText?.classList.remove('hidden');
-        spin?.classList.add('hidden');
-        success?.classList.remove('hidden');
-        form.reset();
-        setTimeout(() => success?.classList.add('hidden'), 5000);
+    salonsCountLabel.textContent = `${salons.length} Verified Salons`;
+
+    function renderSalons() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const selectedCity = cityFilter.value;
+      const activeCat = document.querySelector(".cat-pill.active")?.getAttribute("data-cat") || 'all';
+
+      const filtered = salons.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(searchTerm) || s.city.toLowerCase().includes(searchTerm);
+        const matchesCity = !selectedCity || s.city === selectedCity;
+        const matchesCat = activeCat === 'all' || s.category === activeCat;
+        return matchesSearch && matchesCity && matchesCat;
       });
+
+      if (filtered.length === 0) {
+        salonsGrid.innerHTML = `
+          <div class="empty-state full-width">
+            <p>No salons match your search criteria.</p>
+          </div>
+        `;
+        return;
+      }
+
+      salonsGrid.innerHTML = filtered.map(salon => `
+        <div class="salon-card">
+          <div>
+            <div class="salon-header">
+              <div class="salon-title-box">
+                <h3>${salon.name}</h3>
+                <span class="category-tag">${salon.category}</span>
+              </div>
+              <span class="salon-rating">⭐ 4.8</span>
+            </div>
+            
+            <div class="salon-info">
+              <p>📍 <strong>${salon.city}</strong> - ${salon.address}</p>
+              <p>📞 ${salon.phone}</p>
+
+              <div class="services-preview">
+                <div class="services-preview-title">Services & Menu:</div>
+                ${(salon.services || []).slice(0, 3).map(srv => `
+                  <div class="srv-item-chip">
+                    <span>${srv.name}</span>
+                    <strong>₹${srv.price}</strong>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-primary full-width btn-book-salon" data-id="${salon.id}">
+            Book Appointment
+          </button>
+        </div>
+      `).join('');
+
+      // Attach booking button events
+      document.querySelectorAll(".btn-book-salon").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const salonId = btn.getAttribute("data-id");
+          const targetSalon = salons.find(s => s.id === salonId);
+          if (targetSalon) openBookingModal(targetSalon);
+        });
+      });
+    }
+
+    renderSalons();
+
+    searchInput.addEventListener("input", renderSalons);
+    cityFilter.addEventListener("change", renderSalons);
+    document.querySelectorAll(".cat-pill").forEach(pill => {
+      pill.addEventListener("click", () => {
+        document.querySelectorAll(".cat-pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        renderSalons();
+      });
+    });
+  }, (err) => {
+    console.error("Error loading salons:", err);
+    salonsGrid.innerHTML = `<div class="empty-state"><p>Please make sure Cloud Firestore is enabled in your Firebase console.</p></div>`;
   });
 }
 
-// ─── UTILS ───────────────────────────────────────────────────────
-function esc(s = '') {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// Open Booking Modal
+function openBookingModal(salon) {
+  if (!currentUser) {
+    alert("Please sign in to book an appointment!");
+    openModal(authModal);
+    return;
+  }
+
+  document.getElementById("modal-salon-title").textContent = `Book at ${salon.name}`;
+  document.getElementById("modal-salon-subtitle").textContent = `${salon.category} • ${salon.city}`;
+  document.getElementById("book-salon-id").value = salon.id;
+  document.getElementById("book-owner-id").value = salon.ownerId;
+
+  const serviceSelect = document.getElementById("book-service-select");
+  serviceSelect.innerHTML = (salon.services || []).map(srv => `
+    <option value="${srv.name}" data-price="${srv.price}" data-duration="${srv.duration}">
+      ${srv.name} — ₹${srv.price} (${srv.duration} mins)
+    </option>
+  `).join('');
+
+  function updateSummary() {
+    const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
+    if (selectedOpt) {
+      document.getElementById("summary-price").textContent = `₹${selectedOpt.getAttribute("data-price")}`;
+      document.getElementById("summary-duration").textContent = `${selectedOpt.getAttribute("data-duration")} mins`;
+    }
+  }
+
+  serviceSelect.addEventListener("change", updateSummary);
+  updateSummary();
+
+  // Set minimum date to today
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("book-date").min = today;
+  document.getElementById("book-date").value = today;
+
+  openModal(bookingModal);
 }
+
+// Handle Appointment Submission
+document.getElementById("form-book-appointment")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  
+  const salonId = document.getElementById("book-salon-id").value;
+  const ownerId = document.getElementById("book-owner-id").value;
+  const serviceSelect = document.getElementById("book-service-select");
+  const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
+  
+  const appointmentData = {
+    salonId: salonId,
+    ownerId: ownerId,
+    customerId: currentUser.uid,
+    customerName: userProfile ? userProfile.displayName : currentUser.displayName || "Customer",
+    customerPhone: userProfile ? userProfile.phoneNumber : currentUser.phoneNumber || "N/A",
+    serviceName: serviceSelect.value,
+    price: Number(selectedOpt.getAttribute("data-price")),
+    duration: Number(selectedOpt.getAttribute("data-duration")),
+    date: document.getElementById("book-date").value,
+    timeSlot: document.getElementById("book-time-slot").value,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    await addDoc(collection(db, "appointments"), appointmentData);
+    closeModal(bookingModal);
+    alert("🎉 Appointment booking request submitted! You can track approval in 'My Bookings'.");
+    switchView("view-my-appointments");
+  } catch (err) {
+    console.error("Booking Error:", err);
+    alert("Failed to submit booking: " + err.message);
+  }
+});
+
+// Load Customer's Bookings
+function loadMyBookings() {
+  if (!currentUser) return;
+  const listElem = document.getElementById("my-appointments-list");
+  
+  const q = query(
+    collection(db, "appointments"), 
+    where("customerId", "==", currentUser.uid)
+  );
+
+  if (unsubMyBookings) unsubMyBookings();
+
+  unsubMyBookings = onSnapshot(q, (snapshot) => {
+    const appts = [];
+    snapshot.forEach(docSnap => appts.push({ id: docSnap.id, ...docSnap.data() }));
+
+    if (appts.length === 0) {
+      listElem.innerHTML = `<div class="empty-state"><p>You have no appointments booked yet.</p></div>`;
+      return;
+    }
+
+    listElem.innerHTML = appts.map(a => `
+      <div class="appt-card">
+        <div>
+          <h4>${a.serviceName}</h4>
+          <p>📅 <strong>${a.date}</strong> at <strong>${a.timeSlot}</strong></p>
+          <p>💰 ₹${a.price} • ${a.duration} mins</p>
+        </div>
+        <div>
+          <span class="badge badge-${a.status === 'approved' ? 'success' : a.status === 'rejected' ? 'danger' : 'warning'}">
+            ${a.status.toUpperCase()}
+          </span>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+// -------------------------------------------------------------
+// 3. SALON OWNER DASHBOARD LOGIC
+// -------------------------------------------------------------
+
+// Add dynamic service rows
+document.getElementById("btn-add-service-row")?.addEventListener("click", () => {
+  const container = document.getElementById("services-builder");
+  const newRow = document.createElement("div");
+  newRow.className = "service-row";
+  newRow.innerHTML = `
+    <input type="text" class="srv-name" placeholder="Service Name" required />
+    <input type="number" class="srv-price" placeholder="Price (₹)" required />
+    <input type="number" class="srv-duration" placeholder="Duration (mins)" required />
+    <button type="button" class="btn-remove-row" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(newRow);
+});
+
+// Register Salon Form
+document.getElementById("form-register-salon")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentUser) return;
+
+  const serviceRows = document.querySelectorAll("#services-builder .service-row");
+  const servicesArr = [];
+  serviceRows.forEach(row => {
+    const name = row.querySelector(".srv-name").value.trim();
+    const price = Number(row.querySelector(".srv-price").value);
+    const duration = Number(row.querySelector(".srv-duration").value);
+    if (name && price) {
+      servicesArr.push({ name, price, duration });
+    }
+  });
+
+  const salonPayload = {
+    ownerId: currentUser.uid,
+    name: document.getElementById("reg-salon-name").value.trim(),
+    category: document.getElementById("reg-salon-cat").value,
+    city: document.getElementById("reg-salon-city").value.trim(),
+    phone: document.getElementById("reg-salon-phone").value.trim(),
+    address: document.getElementById("reg-salon-address").value.trim(),
+    services: servicesArr,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    await addDoc(collection(db, "salons"), salonPayload);
+    alert("Registration submitted! Super Admin will verify your salon soon.");
+    loadOwnerDashboard();
+  } catch (err) {
+    console.error("Salon Registration Error:", err);
+    alert("Failed to register salon: " + err.message);
+  }
+});
+
+// Load Salon Owner Dashboard Data
+function loadOwnerDashboard() {
+  if (!currentUser) return;
+
+  const regBox = document.getElementById("owner-registration-box");
+  const activeDash = document.getElementById("owner-active-dash");
+
+  // Fetch Owner's Salon
+  const q = query(collection(db, "salons"), where("ownerId", "==", currentUser.uid));
+  
+  onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) {
+      regBox.style.display = "block";
+      activeDash.style.display = "none";
+    } else {
+      regBox.style.display = "none";
+      activeDash.style.display = "block";
+
+      const salonDoc = snapshot.docs[0];
+      const salonData = salonDoc.data();
+
+      document.getElementById("owner-shop-name").textContent = salonData.name;
+      document.getElementById("owner-shop-location").textContent = `📍 ${salonData.city} — ${salonData.address}`;
+      
+      const statusBadge = document.getElementById("owner-shop-status-badge");
+      statusBadge.textContent = salonData.status.toUpperCase();
+      statusBadge.className = `badge badge-${salonData.status === 'approved' ? 'success' : 'warning'}`;
+      
+      document.getElementById("owner-shop-cat-badge").textContent = salonData.category;
+
+      // Listen to incoming appointments for this salon
+      listenToOwnerAppointments(currentUser.uid);
+    }
+  });
+}
+
+function listenToOwnerAppointments(ownerUid) {
+  const listElem = document.getElementById("owner-appointments-list");
+  const countElem = document.getElementById("owner-appts-count");
+
+  const q = query(collection(db, "appointments"), where("ownerId", "==", ownerUid));
+
+  if (unsubOwnerBookings) unsubOwnerBookings();
+
+  unsubOwnerBookings = onSnapshot(q, (snapshot) => {
+    const appts = [];
+    snapshot.forEach(docSnap => appts.push({ id: docSnap.id, ...docSnap.data() }));
+
+    countElem.textContent = `${appts.length} Requests`;
+
+    if (appts.length === 0) {
+      listElem.innerHTML = `<div class="empty-state"><p>No incoming appointments yet.</p></div>`;
+      return;
+    }
+
+    listElem.innerHTML = appts.map(a => `
+      <div class="appt-card">
+        <div>
+          <h4>${a.serviceName} (₹${a.price})</h4>
+          <p>👤 <strong>${a.customerName}</strong> (${a.customerPhone})</p>
+          <p>📅 <strong>${a.date}</strong> at <strong>${a.timeSlot}</strong></p>
+        </div>
+        <div class="appt-actions">
+          <span class="badge badge-${a.status === 'approved' ? 'success' : a.status === 'rejected' ? 'danger' : 'warning'}">
+            ${a.status.toUpperCase()}
+          </span>
+          ${a.status === 'pending' ? `
+            <button class="btn-approve" onclick="window.updateApptStatus('${a.id}', 'approved')">Approve ✅</button>
+            <button class="btn-reject" onclick="window.updateApptStatus('${a.id}', 'rejected')">Reject ✕</button>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+// Global update status function for onclick attributes
+window.updateApptStatus = async function(apptId, newStatus) {
+  try {
+    await updateDoc(doc(db, "appointments", apptId), { status: newStatus });
+    alert(`Appointment status updated to ${newStatus.toUpperCase()}`);
+  } catch (err) {
+    alert("Error updating status: " + err.message);
+  }
+};
+
+// -------------------------------------------------------------
+// 4. SUPER ADMIN DASHBOARD LOGIC
+// -------------------------------------------------------------
+
+function loadSuperAdminDashboard() {
+  const pendingListElem = document.getElementById("admin-pending-salons-list");
+  
+  // Total stats counters
+  onSnapshot(collection(db, "salons"), (snap) => {
+    let pendingCount = 0;
+    snap.forEach(d => { if (d.data().status === 'pending') pendingCount++; });
+    document.getElementById("admin-stat-total-salons").textContent = snap.size;
+    document.getElementById("admin-stat-pending-salons").textContent = pendingCount;
+  });
+
+  onSnapshot(collection(db, "appointments"), (snap) => {
+    document.getElementById("admin-stat-total-appts").textContent = snap.size;
+  });
+
+  // Pending Salons Subscription
+  const q = query(collection(db, "salons"), where("status", "==", "pending"));
+
+  if (unsubAdminSalons) unsubAdminSalons();
+
+  unsubAdminSalons = onSnapshot(q, (snapshot) => {
+    const salons = [];
+    snapshot.forEach(docSnap => salons.push({ id: docSnap.id, ...docSnap.data() }));
+
+    if (salons.length === 0) {
+      pendingListElem.innerHTML = `<div class="empty-state"><p>No pending salon verification requests.</p></div>`;
+      return;
+    }
+
+    pendingListElem.innerHTML = salons.map(s => `
+      <div class="appt-card">
+        <div>
+          <h3>${s.name} (${s.category})</h3>
+          <p>📍 ${s.city} — ${s.address}</p>
+          <p>📞 Phone: ${s.phone}</p>
+        </div>
+        <div class="appt-actions">
+          <button class="btn-approve" onclick="window.verifySalon('${s.id}', 'approved')">Approve Salon ✅</button>
+          <button class="btn-reject" onclick="window.verifySalon('${s.id}', 'rejected')">Reject ✕</button>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+window.verifySalon = async function(salonId, newStatus) {
+  try {
+    await updateDoc(doc(db, "salons", salonId), { status: newStatus });
+    alert(`Salon registration ${newStatus}!`);
+  } catch (err) {
+    alert("Error verifying salon: " + err.message);
+  }
+};
+
+// Initialize listeners on boot
+listenToSalons();
