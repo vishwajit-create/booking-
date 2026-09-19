@@ -167,7 +167,7 @@ async function syncUserProfile(user, fallbackRole = 'customer') {
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
 
-  const isAdminEmail = user.email === 'admin@urbanhair.app' || user.email === 'vishw_8mxgyao@gmail.com';
+  const isAdminEmail = user.email === 'admin@urbanhair.app' || user.email === 'innocentyadav100@gmail.com';
 
   if (snap.exists()) {
     const existing = snap.data();
