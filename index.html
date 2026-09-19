@@ -32,9 +32,9 @@
       <!-- Navigation Tabs for Views -->
       <nav class="nav-views" id="nav-views">
         <button class="nav-btn active" data-target="view-customer">Explore Salons</button>
-        <button class="nav-btn" data-target="view-my-appointments" id="nav-my-bookings" style="display: none;">My Bookings</button>
-        <button class="nav-btn" data-target="view-salon-owner" id="nav-owner-dash" style="display: none;">Salon Dashboard</button>
-        <button class="nav-btn admin-link" data-target="view-super-admin" id="nav-admin-dash" style="display: none;">🛡️ Super Admin</button>
+        <button class="nav-btn" data-target="view-my-appointments" id="nav-my-bookings">My Bookings</button>
+        <button class="nav-btn" data-target="view-salon-owner" id="nav-owner-dash">Salon Dashboard</button>
+        <button class="nav-btn admin-link" data-target="view-super-admin" id="nav-admin-dash">🛡️ Super Admin</button>
       </nav>
 
       <!-- Auth Action & User Profile Info -->
@@ -462,6 +462,81 @@
           </div>
         </div>
         <button id="btn-save-new-service" class="btn-primary full-width">Add Service to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Footer -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <span class="logo-icon">✂️</span> <strong>UrbanHair Pro</strong> &copy; 2026. All rights reserved.
+      </div>
+      <div class="footer-links">
+        <button id="btn-open-privacy" class="link-btn">Privacy Policy</button>
+        <button id="btn-open-terms" class="link-btn">Terms of Service</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─────────────────────────────────────────────────────────────
+       PRIVACY POLICY MODAL
+  ───────────────────────────────────────────────────────────── -->
+  <div id="privacy-modal" class="modal-overlay">
+    <div class="modal-card modal-lg">
+      <button id="btn-close-privacy-modal" class="modal-close">✕</button>
+      <div class="modal-header">
+        <span class="modal-icon">🔒</span>
+        <h2>Privacy Policy</h2>
+        <p>Effective Date: September 20, 2026</p>
+      </div>
+      <div class="policy-content">
+        <h3>1. Information We Collect</h3>
+        <p>Urban Hair collects information necessary for providing appointment booking services. This includes display name, email address, phone number, and booking details provided during authentication via Google Sign-In or Phone OTP.</p>
+        
+        <h3>2. How We Use Your Data</h3>
+        <p>Your data is strictly used to:</p>
+        <ul style="padding-left:20px;margin-bottom:12px">
+          <li>Authenticate your user account and verify identity.</li>
+          <li>Facilitate appointment bookings between customers and registered salon owners.</li>
+          <li>Send live booking status updates (Pending, Approved, Rejected, Completed).</li>
+        </ul>
+
+        <h3>3. Data Protection & Security</h3>
+        <p>We use Firebase Authentication and Cloud Firestore with strict Role-Based Security Rules. We do not sell or share your personal information with unauthorized third parties.</p>
+
+        <h3>4. Contact Us</h3>
+        <p>If you have any questions regarding this Privacy Policy, contact us at <strong>support@urbanhair.app</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────
+       TERMS OF SERVICE MODAL
+  ───────────────────────────────────────────────────────────── -->
+  <div id="terms-modal" class="modal-overlay">
+    <div class="modal-card modal-lg">
+      <button id="btn-close-terms-modal" class="modal-close">✕</button>
+      <div class="modal-header">
+        <span class="modal-icon">📜</span>
+        <h2>Terms of Service</h2>
+        <p>Effective Date: September 20, 2026</p>
+      </div>
+      <div class="policy-content">
+        <h3>1. Acceptance of Terms</h3>
+        <p>By accessing or using Urban Hair, you agree to comply with these Terms of Service. If you do not agree, please do not use our platform.</p>
+
+        <h3>2. Salon & Parlour Registrations</h3>
+        <p>Salon owners must provide accurate business information, contact details, and transparent service pricing. All registered salons are subject to verification and approval by the Super Admin prior to listing.</p>
+
+        <h3>3. Appointment Bookings & Cancellations</h3>
+        <p>Customers can request appointments for listed services. Appointments remain pending until approved or rejected by the salon owner. Customers may cancel pending bookings at any time.</p>
+
+        <h3>4. Limitation of Liability</h3>
+        <p>Urban Hair acts as a booking platform connecting customers with salon owners. We are not responsible for service disputes between customers and salon establishments.</p>
+
+        <h3>5. Governing Law</h3>
+        <p>These terms shall be governed in accordance with applicable laws.</p>
       </div>
     </div>
   </div>

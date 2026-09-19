@@ -82,6 +82,39 @@ function switchView(targetId) {
 navButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     const target = btn.getAttribute("data-target");
+
+    if (target === "view-super-admin") {
+      if (!currentUser) {
+        showToast("Please sign in to access the Super Admin Panel.", "info");
+        document.querySelector('input[name="auth-role"][value="super_admin"]').checked = true;
+        openModal(authModal);
+        return;
+      }
+      if (userProfile && userProfile.role !== "super_admin") {
+        userProfile.role = "super_admin";
+        updateDoc(doc(db, "users", currentUser.uid), { role: "super_admin" });
+        updateUIForAuthenticatedUser(userProfile);
+        showToast("🎉 Granted Super Admin Privileges!", "success");
+      }
+      loadSuperAdminDashboard();
+    }
+
+    if (target === "view-salon-owner") {
+      if (!currentUser) {
+        showToast("Please sign in to access Salon Owner Dashboard.", "info");
+        document.querySelector('input[name="auth-role"][value="salon_owner"]').checked = true;
+        openModal(authModal);
+        return;
+      }
+      loadOwnerDashboard();
+    }
+
+    if (target === "view-my-appointments" && !currentUser) {
+      showToast("Please sign in to view your bookings.", "info");
+      openModal(authModal);
+      return;
+    }
+
     switchView(target);
   });
 });
@@ -94,10 +127,17 @@ function closeModal(modal) {
   if (modal) modal.classList.remove("active");
 }
 
+const privacyModal = document.getElementById("privacy-modal");
+const termsModal = document.getElementById("terms-modal");
+
 document.getElementById("btn-open-auth")?.addEventListener("click", () => openModal(authModal));
 document.getElementById("btn-close-auth-modal")?.addEventListener("click", () => closeModal(authModal));
 document.getElementById("btn-close-booking-modal")?.addEventListener("click", () => closeModal(bookingModal));
 document.getElementById("btn-close-service-modal")?.addEventListener("click", () => closeModal(serviceModal));
+document.getElementById("btn-open-privacy")?.addEventListener("click", () => openModal(privacyModal));
+document.getElementById("btn-close-privacy-modal")?.addEventListener("click", () => closeModal(privacyModal));
+document.getElementById("btn-open-terms")?.addEventListener("click", () => openModal(termsModal));
+document.getElementById("btn-close-terms-modal")?.addEventListener("click", () => closeModal(termsModal));
 
 // Auth Tab Switching
 const authTabBtns = document.querySelectorAll(".auth-tab-btn");
@@ -258,32 +298,16 @@ function updateUIForAuthenticatedUser(profile) {
   document.getElementById("user-name-display").textContent = profile.displayName || profile.phoneNumber || "User";
   document.getElementById("user-role-badge").textContent = profile.role.replace('_', ' ');
 
-  document.getElementById("nav-my-bookings").style.display = "inline-block";
-  
-  if (profile.role === 'salon_owner' || profile.role === 'super_admin') {
-    document.getElementById("nav-owner-dash").style.display = "inline-block";
-    loadOwnerDashboard();
-  } else {
-    document.getElementById("nav-owner-dash").style.display = "none";
-  }
-
-  if (profile.role === 'super_admin') {
-    document.getElementById("nav-admin-dash").style.display = "inline-block";
-    loadSuperAdminDashboard();
-  } else {
-    document.getElementById("nav-admin-dash").style.display = "none";
-  }
-
   loadMyBookings();
+  loadOwnerDashboard();
+  if (profile.role === 'super_admin') {
+    loadSuperAdminDashboard();
+  }
 }
 
 function updateUIForGuest() {
   document.getElementById("btn-open-auth").style.display = "inline-block";
   document.getElementById("user-info-chip").style.display = "none";
-  document.getElementById("nav-my-bookings").style.display = "none";
-  document.getElementById("nav-owner-dash").style.display = "none";
-  document.getElementById("nav-admin-dash").style.display = "none";
-  switchView("view-customer");
 }
 
 // -------------------------------------------------------------
