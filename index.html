@@ -45,6 +45,7 @@
             <span id="user-name-display" class="user-name">User</span>
             <span id="user-role-badge" class="role-badge">Customer</span>
           </div>
+          <button id="btn-claim-admin" class="btn-logout" title="Switch to Admin Mode" style="color:var(--accent-purple);font-weight:bold;margin-left:4px">🛡️ Admin</button>
           <button id="btn-logout" class="btn-logout" title="Sign Out">Sign Out 🚪</button>
         </div>
 
@@ -320,11 +321,15 @@
         <div class="role-options">
           <label class="role-opt">
             <input type="radio" name="auth-role" value="customer" checked />
-            <span>Customer (Book Salon)</span>
+            <span>Customer</span>
           </label>
           <label class="role-opt">
             <input type="radio" name="auth-role" value="salon_owner" />
-            <span>Salon / Parlour Owner</span>
+            <span>Salon Owner</span>
+          </label>
+          <label class="role-opt">
+            <input type="radio" name="auth-role" value="super_admin" />
+            <span>🛡️ Super Admin</span>
           </label>
         </div>
       </div>

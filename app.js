@@ -218,6 +218,26 @@ document.getElementById("btn-logout")?.addEventListener("click", () => {
   showToast("Signed out successfully.", "info");
 });
 
+// Claim Admin Role Handler
+document.getElementById("btn-claim-admin")?.addEventListener("click", async () => {
+  if (!currentUser) {
+    showToast("Please sign in first to access Admin mode.", "warning");
+    openModal(authModal);
+    return;
+  }
+  try {
+    const userRef = doc(db, "users", currentUser.uid);
+    await updateDoc(userRef, { role: "super_admin" });
+    userProfile.role = "super_admin";
+    updateUIForAuthenticatedUser(userProfile);
+    switchView("view-super-admin");
+    showToast("🎉 Super Admin Panel Unlocked!", "success");
+  } catch (err) {
+    console.error("Error unlocking admin:", err);
+    showToast("Error updating role: " + err.message, "error");
+  }
+});
+
 // Auth State Observer
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
