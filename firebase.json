@@ -2,7 +2,9 @@
   "auth": {
     "authorizedDomains": [
       "localhost",
-      "127.0.0.1"
+      "127.0.0.1",
+      "urbanhairapp-ec379.web.app",
+      "urbanhairapp-ec379.firebaseapp.com"
     ],
     "providers": {
       "googleSignIn": {
@@ -14,5 +16,19 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }
