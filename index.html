@@ -39,6 +39,7 @@
 
       <!-- Auth Action & User Profile Info -->
       <div class="auth-bar">
+        <button id="btn-header-privacy" class="btn-secondary btn-sm" style="margin-right:4px">🔒 Privacy</button>
         <div id="user-info-chip" class="user-chip" style="display: none;">
           <img id="user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=urban" alt="User" class="user-avatar" />
           <div class="user-details">
@@ -371,6 +372,12 @@
           </div>
           <button id="btn-verify-otp" class="btn-primary full-width">Verify & Sign In</button>
         </div>
+      </div>
+
+      <div style="margin-top:20px;text-align:center;font-size:0.8rem;color:var(--text-secondary)">
+        By continuing, you agree to our 
+        <button id="btn-modal-privacy" class="link-btn" style="font-size:0.8rem">Privacy Policy</button> & 
+        <button id="btn-modal-terms" class="link-btn" style="font-size:0.8rem">Terms of Service</button>
       </div>
     </div>
   </div>

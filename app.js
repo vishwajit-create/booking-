@@ -135,8 +135,11 @@ document.getElementById("btn-close-auth-modal")?.addEventListener("click", () =>
 document.getElementById("btn-close-booking-modal")?.addEventListener("click", () => closeModal(bookingModal));
 document.getElementById("btn-close-service-modal")?.addEventListener("click", () => closeModal(serviceModal));
 document.getElementById("btn-open-privacy")?.addEventListener("click", () => openModal(privacyModal));
+document.getElementById("btn-header-privacy")?.addEventListener("click", () => openModal(privacyModal));
+document.getElementById("btn-modal-privacy")?.addEventListener("click", () => { closeModal(authModal); openModal(privacyModal); });
 document.getElementById("btn-close-privacy-modal")?.addEventListener("click", () => closeModal(privacyModal));
 document.getElementById("btn-open-terms")?.addEventListener("click", () => openModal(termsModal));
+document.getElementById("btn-modal-terms")?.addEventListener("click", () => { closeModal(authModal); openModal(termsModal); });
 document.getElementById("btn-close-terms-modal")?.addEventListener("click", () => closeModal(termsModal));
 
 // Auth Tab Switching
