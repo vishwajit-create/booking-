@@ -1,4 +1,4 @@
-// Urban Hair App Core Application Logic
+// Urban Hair App Core Application Logic (Production-Ready)
 import { 
   auth, 
   db, 
@@ -23,6 +23,7 @@ import {
 // Global App State
 let currentUser = null;
 let userProfile = null;
+let currentOwnerSalon = null;
 let recaptchaVerifier = null;
 let confirmationResult = null;
 let unsubSalons = null;
@@ -33,6 +34,35 @@ let unsubAdminSalons = null;
 // DOM Elements
 const authModal = document.getElementById("auth-modal");
 const bookingModal = document.getElementById("booking-modal");
+const serviceModal = document.getElementById("service-manager-modal");
+
+// -------------------------------------------------------------
+// 0. TOAST NOTIFICATION SYSTEM
+// -------------------------------------------------------------
+function showToast(message, type = "info") {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  
+  const iconMap = {
+    success: "✅",
+    error: "❌",
+    info: "ℹ️",
+    warning: "⚠️"
+  };
+
+  toast.innerHTML = `<span>${iconMap[type] || 'ℹ️'}</span><span>${message}</span>`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(100%)";
+    toast.style.transition = "all 0.3s ease";
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
 
 // Navigation View Switching
 const navButtons = document.querySelectorAll(".nav-btn");
@@ -67,6 +97,7 @@ function closeModal(modal) {
 document.getElementById("btn-open-auth")?.addEventListener("click", () => openModal(authModal));
 document.getElementById("btn-close-auth-modal")?.addEventListener("click", () => closeModal(authModal));
 document.getElementById("btn-close-booking-modal")?.addEventListener("click", () => closeModal(bookingModal));
+document.getElementById("btn-close-service-modal")?.addEventListener("click", () => closeModal(serviceModal));
 
 // Auth Tab Switching
 const authTabBtns = document.querySelectorAll(".auth-tab-btn");
@@ -85,13 +116,11 @@ authTabBtns.forEach(btn => {
 // 1. AUTHENTICATION (Google Sign-In & Phone OTP)
 // -------------------------------------------------------------
 
-// Get Selected Auth Role
 function getSelectedAuthRole() {
   const radio = document.querySelector('input[name="auth-role"]:checked');
   return radio ? radio.value : 'customer';
 }
 
-// Ensure User Document in Firestore
 async function syncUserProfile(user, fallbackRole = 'customer') {
   if (!user) return null;
   const userRef = doc(db, "users", user.uid);
@@ -100,7 +129,6 @@ async function syncUserProfile(user, fallbackRole = 'customer') {
   if (snap.exists()) {
     return snap.data();
   } else {
-    // Determine default role (special handle for super admin)
     let role = fallbackRole;
     if (user.email === 'admin@urbanhair.app' || user.email === 'vishw_8mxgyao@gmail.com') {
       role = 'super_admin';
@@ -126,9 +154,10 @@ document.getElementById("btn-google-login")?.addEventListener("click", async () 
     const result = await signInWithPopup(auth, googleProvider);
     await syncUserProfile(result.user, role);
     closeModal(authModal);
+    showToast("Signed in successfully with Google!", "success");
   } catch (err) {
     console.error("Google Auth Error:", err);
-    alert("Google Sign-In Failed: " + err.message);
+    showToast("Google Sign-In Failed: " + err.message, "error");
   }
 });
 
@@ -136,10 +165,7 @@ document.getElementById("btn-google-login")?.addEventListener("click", async () 
 function initRecaptcha() {
   if (!window.recaptchaVerifier) {
     window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      'size': 'invisible',
-      'callback': (response) => {
-        // reCAPTCHA solved
-      }
+      'size': 'invisible'
     });
   }
 }
@@ -148,7 +174,7 @@ function initRecaptcha() {
 document.getElementById("btn-send-otp")?.addEventListener("click", async () => {
   const phoneNum = document.getElementById("input-phone-number").value.trim();
   if (!phoneNum || phoneNum.length < 10) {
-    alert("Please enter a valid phone number with country code (e.g. +91 9876543210)");
+    showToast("Please enter a valid phone number with country code (e.g. +91 9876543210)", "warning");
     return;
   }
 
@@ -159,10 +185,10 @@ document.getElementById("btn-send-otp")?.addEventListener("click", async () => {
     
     document.getElementById("phone-step-1").style.display = "none";
     document.getElementById("phone-step-2").style.display = "block";
-    alert("Verification OTP sent to " + phoneNum);
+    showToast("Verification OTP sent to " + phoneNum, "info");
   } catch (err) {
     console.error("Phone Auth Error:", err);
-    alert("Failed to send SMS OTP: " + err.message);
+    showToast("Failed to send SMS OTP: " + err.message, "error");
   }
 });
 
@@ -170,7 +196,7 @@ document.getElementById("btn-send-otp")?.addEventListener("click", async () => {
 document.getElementById("btn-verify-otp")?.addEventListener("click", async () => {
   const otpCode = document.getElementById("input-otp-code").value.trim();
   if (!otpCode || otpCode.length !== 6) {
-    alert("Please enter the 6-digit OTP code.");
+    showToast("Please enter the 6-digit OTP code.", "warning");
     return;
   }
 
@@ -179,15 +205,17 @@ document.getElementById("btn-verify-otp")?.addEventListener("click", async () =>
     const result = await confirmationResult.confirm(otpCode);
     await syncUserProfile(result.user, role);
     closeModal(authModal);
+    showToast("Phone authentication successful!", "success");
   } catch (err) {
     console.error("OTP Verification Error:", err);
-    alert("Invalid OTP Code: " + err.message);
+    showToast("Invalid OTP Code: " + err.message, "error");
   }
 });
 
 // Logout
 document.getElementById("btn-logout")?.addEventListener("click", () => {
   signOut(auth);
+  showToast("Signed out successfully.", "info");
 });
 
 // Auth State Observer
@@ -210,7 +238,6 @@ function updateUIForAuthenticatedUser(profile) {
   document.getElementById("user-name-display").textContent = profile.displayName || profile.phoneNumber || "User";
   document.getElementById("user-role-badge").textContent = profile.role.replace('_', ' ');
 
-  // Show dynamic navigation links based on user role
   document.getElementById("nav-my-bookings").style.display = "inline-block";
   
   if (profile.role === 'salon_owner' || profile.role === 'super_admin') {
@@ -296,6 +323,7 @@ function listenToSalons() {
             <div class="salon-info">
               <p>📍 <strong>${salon.city}</strong> - ${salon.address}</p>
               <p>📞 ${salon.phone}</p>
+              <p>🟢 ${salon.isOpen === false ? '<span style="color:#ef4444">Currently Closed</span>' : '<span style="color:#10b981">Open for Bookings</span>'}</p>
 
               <div class="services-preview">
                 <div class="services-preview-title">Services & Menu:</div>
@@ -309,13 +337,12 @@ function listenToSalons() {
             </div>
           </div>
 
-          <button class="btn-primary full-width btn-book-salon" data-id="${salon.id}">
-            Book Appointment
+          <button class="btn-primary full-width btn-book-salon" data-id="${salon.id}" ${salon.isOpen === false ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+            ${salon.isOpen === false ? 'Shop Closed' : 'Book Appointment'}
           </button>
         </div>
       `).join('');
 
-      // Attach booking button events
       document.querySelectorAll(".btn-book-salon").forEach(btn => {
         btn.addEventListener("click", () => {
           const salonId = btn.getAttribute("data-id");
@@ -338,14 +365,14 @@ function listenToSalons() {
     });
   }, (err) => {
     console.error("Error loading salons:", err);
-    salonsGrid.innerHTML = `<div class="empty-state"><p>Please make sure Cloud Firestore is enabled in your Firebase console.</p></div>`;
+    salonsGrid.innerHTML = `<div class="empty-state"><p>Cloud Firestore data offline.</p></div>`;
   });
 }
 
 // Open Booking Modal
 function openBookingModal(salon) {
   if (!currentUser) {
-    alert("Please sign in to book an appointment!");
+    showToast("Please sign in to book an appointment!", "warning");
     openModal(authModal);
     return;
   }
@@ -373,7 +400,6 @@ function openBookingModal(salon) {
   serviceSelect.addEventListener("change", updateSummary);
   updateSummary();
 
-  // Set minimum date to today
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("book-date").min = today;
   document.getElementById("book-date").value = today;
@@ -389,7 +415,9 @@ document.getElementById("form-book-appointment")?.addEventListener("submit", asy
   const ownerId = document.getElementById("book-owner-id").value;
   const serviceSelect = document.getElementById("book-service-select");
   const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
-  
+  const dateVal = document.getElementById("book-date").value;
+  const slotVal = document.getElementById("book-time-slot").value;
+
   const appointmentData = {
     salonId: salonId,
     ownerId: ownerId,
@@ -399,8 +427,8 @@ document.getElementById("form-book-appointment")?.addEventListener("submit", asy
     serviceName: serviceSelect.value,
     price: Number(selectedOpt.getAttribute("data-price")),
     duration: Number(selectedOpt.getAttribute("data-duration")),
-    date: document.getElementById("book-date").value,
-    timeSlot: document.getElementById("book-time-slot").value,
+    date: dateVal,
+    timeSlot: slotVal,
     status: 'pending',
     createdAt: new Date().toISOString()
   };
@@ -408,11 +436,11 @@ document.getElementById("form-book-appointment")?.addEventListener("submit", asy
   try {
     await addDoc(collection(db, "appointments"), appointmentData);
     closeModal(bookingModal);
-    alert("🎉 Appointment booking request submitted! You can track approval in 'My Bookings'.");
+    showToast("🎉 Booking request submitted! Track approval in 'My Bookings'.", "success");
     switchView("view-my-appointments");
   } catch (err) {
     console.error("Booking Error:", err);
-    alert("Failed to submit booking: " + err.message);
+    showToast("Failed to submit booking: " + err.message, "error");
   }
 });
 
@@ -444,21 +472,33 @@ function loadMyBookings() {
           <p>📅 <strong>${a.date}</strong> at <strong>${a.timeSlot}</strong></p>
           <p>💰 ₹${a.price} • ${a.duration} mins</p>
         </div>
-        <div>
-          <span class="badge badge-${a.status === 'approved' ? 'success' : a.status === 'rejected' ? 'danger' : 'warning'}">
+        <div class="appt-actions">
+          <span class="badge badge-${a.status === 'approved' ? 'success' : a.status === 'rejected' || a.status === 'cancelled' ? 'danger' : a.status === 'completed' ? 'info' : 'warning'}">
             ${a.status.toUpperCase()}
           </span>
+          ${a.status === 'pending' ? `
+            <button class="btn-reject" onclick="window.cancelMyBooking('${a.id}')">Cancel ✕</button>
+          ` : ''}
         </div>
       </div>
     `).join('');
   });
 }
 
+window.cancelMyBooking = async function(apptId) {
+  if (!confirm("Are you sure you want to cancel this booking?")) return;
+  try {
+    await updateDoc(doc(db, "appointments", apptId), { status: 'cancelled' });
+    showToast("Booking cancelled successfully.", "info");
+  } catch (err) {
+    showToast("Error cancelling booking: " + err.message, "error");
+  }
+};
+
 // -------------------------------------------------------------
 // 3. SALON OWNER DASHBOARD LOGIC
 // -------------------------------------------------------------
 
-// Add dynamic service rows
 document.getElementById("btn-add-service-row")?.addEventListener("click", () => {
   const container = document.getElementById("services-builder");
   const newRow = document.createElement("div");
@@ -496,17 +536,18 @@ document.getElementById("form-register-salon")?.addEventListener("submit", async
     phone: document.getElementById("reg-salon-phone").value.trim(),
     address: document.getElementById("reg-salon-address").value.trim(),
     services: servicesArr,
+    isOpen: true,
     status: 'pending',
     createdAt: new Date().toISOString()
   };
 
   try {
     await addDoc(collection(db, "salons"), salonPayload);
-    alert("Registration submitted! Super Admin will verify your salon soon.");
+    showToast("Registration submitted! Super Admin will verify your salon soon.", "success");
     loadOwnerDashboard();
   } catch (err) {
     console.error("Salon Registration Error:", err);
-    alert("Failed to register salon: " + err.message);
+    showToast("Failed to register salon: " + err.message, "error");
   }
 });
 
@@ -517,7 +558,6 @@ function loadOwnerDashboard() {
   const regBox = document.getElementById("owner-registration-box");
   const activeDash = document.getElementById("owner-active-dash");
 
-  // Fetch Owner's Salon
   const q = query(collection(db, "salons"), where("ownerId", "==", currentUser.uid));
   
   onSnapshot(q, (snapshot) => {
@@ -529,26 +569,111 @@ function loadOwnerDashboard() {
       activeDash.style.display = "block";
 
       const salonDoc = snapshot.docs[0];
-      const salonData = salonDoc.data();
+      currentOwnerSalon = { id: salonDoc.id, ...salonDoc.data() };
 
-      document.getElementById("owner-shop-name").textContent = salonData.name;
-      document.getElementById("owner-shop-location").textContent = `📍 ${salonData.city} — ${salonData.address}`;
+      document.getElementById("owner-shop-name").textContent = currentOwnerSalon.name;
+      document.getElementById("owner-shop-location").textContent = `📍 ${currentOwnerSalon.city} — ${currentOwnerSalon.address}`;
       
       const statusBadge = document.getElementById("owner-shop-status-badge");
-      statusBadge.textContent = salonData.status.toUpperCase();
-      statusBadge.className = `badge badge-${salonData.status === 'approved' ? 'success' : 'warning'}`;
+      statusBadge.textContent = currentOwnerSalon.status.toUpperCase();
+      statusBadge.className = `badge badge-${currentOwnerSalon.status === 'approved' ? 'success' : 'warning'}`;
       
-      document.getElementById("owner-shop-cat-badge").textContent = salonData.category;
+      document.getElementById("owner-shop-cat-badge").textContent = currentOwnerSalon.category;
 
-      // Listen to incoming appointments for this salon
+      const toggleOpen = document.getElementById("toggle-shop-open");
+      toggleOpen.checked = currentOwnerSalon.isOpen !== false;
+
       listenToOwnerAppointments(currentUser.uid);
     }
   });
 }
 
+// Toggle Shop Open/Closed
+document.getElementById("toggle-shop-open")?.addEventListener("change", async (e) => {
+  if (!currentOwnerSalon) return;
+  const isOpenNew = e.target.checked;
+  try {
+    await updateDoc(doc(db, "salons", currentOwnerSalon.id), { isOpen: isOpenNew });
+    showToast(isOpenNew ? "Shop is now Open for bookings!" : "Shop is now Closed.", "info");
+  } catch (err) {
+    showToast("Error updating shop status: " + err.message, "error");
+  }
+});
+
+// Manage Services Modal
+document.getElementById("btn-open-service-manager")?.addEventListener("click", () => {
+  if (!currentOwnerSalon) return;
+  renderServiceManager();
+  openModal(serviceModal);
+});
+
+function renderServiceManager() {
+  const container = document.getElementById("services-manager-list");
+  const services = currentOwnerSalon.services || [];
+
+  if (services.length === 0) {
+    container.innerHTML = `<p class="empty-state">No services added yet.</p>`;
+    return;
+  }
+
+  container.innerHTML = services.map((srv, idx) => `
+    <div class="service-item-row">
+      <div>
+        <strong>${srv.name}</strong> — ₹${srv.price} (${srv.duration} mins)
+      </div>
+      <button class="btn-remove-row" onclick="window.deleteServiceItem(${idx})">✕</button>
+    </div>
+  `).join('');
+}
+
+window.deleteServiceItem = async function(idx) {
+  if (!currentOwnerSalon) return;
+  const updatedServices = [...(currentOwnerSalon.services || [])];
+  updatedServices.splice(idx, 1);
+
+  try {
+    await updateDoc(doc(db, "salons", currentOwnerSalon.id), { services: updatedServices });
+    currentOwnerSalon.services = updatedServices;
+    renderServiceManager();
+    showToast("Service deleted.", "info");
+  } catch (err) {
+    showToast("Error deleting service: " + err.message, "error");
+  }
+};
+
+document.getElementById("btn-save-new-service")?.addEventListener("click", async () => {
+  if (!currentOwnerSalon) return;
+  const name = document.getElementById("new-service-name").value.trim();
+  const price = Number(document.getElementById("new-service-price").value);
+  const duration = Number(document.getElementById("new-service-duration").value);
+
+  if (!name || !price) {
+    showToast("Please enter valid service name and price.", "warning");
+    return;
+  }
+
+  const updatedServices = [...(currentOwnerSalon.services || []), { name, price, duration: duration || 30 }];
+
+  try {
+    await updateDoc(doc(db, "salons", currentOwnerSalon.id), { services: updatedServices });
+    currentOwnerSalon.services = updatedServices;
+    
+    document.getElementById("new-service-name").value = "";
+    document.getElementById("new-service-price").value = "";
+    document.getElementById("new-service-duration").value = "";
+
+    renderServiceManager();
+    showToast("New service added successfully!", "success");
+  } catch (err) {
+    showToast("Error adding service: " + err.message, "error");
+  }
+});
+
 function listenToOwnerAppointments(ownerUid) {
   const listElem = document.getElementById("owner-appointments-list");
   const countElem = document.getElementById("owner-appts-count");
+  const revElem = document.getElementById("owner-stat-revenue");
+  const compElem = document.getElementById("owner-stat-completed");
 
   const q = query(collection(db, "appointments"), where("ownerId", "==", ownerUid));
 
@@ -556,9 +681,23 @@ function listenToOwnerAppointments(ownerUid) {
 
   unsubOwnerBookings = onSnapshot(q, (snapshot) => {
     const appts = [];
-    snapshot.forEach(docSnap => appts.push({ id: docSnap.id, ...docSnap.data() }));
+    let totalRevenue = 0;
+    let completedCount = 0;
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      appts.push({ id: docSnap.id, ...data });
+      if (data.status === 'completed' || data.status === 'approved') {
+        totalRevenue += (data.price || 0);
+      }
+      if (data.status === 'completed') {
+        completedCount++;
+      }
+    });
 
     countElem.textContent = `${appts.length} Requests`;
+    revElem.textContent = `₹${totalRevenue}`;
+    compElem.textContent = `${completedCount}`;
 
     if (appts.length === 0) {
       listElem.innerHTML = `<div class="empty-state"><p>No incoming appointments yet.</p></div>`;
@@ -573,12 +712,15 @@ function listenToOwnerAppointments(ownerUid) {
           <p>📅 <strong>${a.date}</strong> at <strong>${a.timeSlot}</strong></p>
         </div>
         <div class="appt-actions">
-          <span class="badge badge-${a.status === 'approved' ? 'success' : a.status === 'rejected' ? 'danger' : 'warning'}">
+          <span class="badge badge-${a.status === 'approved' ? 'success' : a.status === 'rejected' || a.status === 'cancelled' ? 'danger' : a.status === 'completed' ? 'info' : 'warning'}">
             ${a.status.toUpperCase()}
           </span>
           ${a.status === 'pending' ? `
             <button class="btn-approve" onclick="window.updateApptStatus('${a.id}', 'approved')">Approve ✅</button>
             <button class="btn-reject" onclick="window.updateApptStatus('${a.id}', 'rejected')">Reject ✕</button>
+          ` : ''}
+          ${a.status === 'approved' ? `
+            <button class="btn-complete" onclick="window.updateApptStatus('${a.id}', 'completed')">Mark Completed 🏁</button>
           ` : ''}
         </div>
       </div>
@@ -586,13 +728,12 @@ function listenToOwnerAppointments(ownerUid) {
   });
 }
 
-// Global update status function for onclick attributes
 window.updateApptStatus = async function(apptId, newStatus) {
   try {
     await updateDoc(doc(db, "appointments", apptId), { status: newStatus });
-    alert(`Appointment status updated to ${newStatus.toUpperCase()}`);
+    showToast(`Appointment marked as ${newStatus.toUpperCase()}`, "success");
   } catch (err) {
-    alert("Error updating status: " + err.message);
+    showToast("Error updating status: " + err.message, "error");
   }
 };
 
@@ -601,9 +742,8 @@ window.updateApptStatus = async function(apptId, newStatus) {
 // -------------------------------------------------------------
 
 function loadSuperAdminDashboard() {
-  const pendingListElem = document.getElementById("admin-pending-salons-list");
+  const adminSalonsList = document.getElementById("admin-salons-list");
   
-  // Total stats counters
   onSnapshot(collection(db, "salons"), (snap) => {
     let pendingCount = 0;
     snap.forEach(d => { if (d.data().status === 'pending') pendingCount++; });
@@ -615,44 +755,65 @@ function loadSuperAdminDashboard() {
     document.getElementById("admin-stat-total-appts").textContent = snap.size;
   });
 
-  // Pending Salons Subscription
-  const q = query(collection(db, "salons"), where("status", "==", "pending"));
-
   if (unsubAdminSalons) unsubAdminSalons();
 
-  unsubAdminSalons = onSnapshot(q, (snapshot) => {
+  unsubAdminSalons = onSnapshot(collection(db, "salons"), (snapshot) => {
     const salons = [];
     snapshot.forEach(docSnap => salons.push({ id: docSnap.id, ...docSnap.data() }));
 
-    if (salons.length === 0) {
-      pendingListElem.innerHTML = `<div class="empty-state"><p>No pending salon verification requests.</p></div>`;
-      return;
+    function renderAdminSalons() {
+      const activeFilter = document.querySelector(".admin-tab-btn.active")?.getAttribute("data-status-filter") || 'all';
+      const filtered = salons.filter(s => activeFilter === 'all' || s.status === activeFilter);
+
+      if (filtered.length === 0) {
+        adminSalonsList.innerHTML = `<div class="empty-state"><p>No salons match filter "${activeFilter}".</p></div>`;
+        return;
+      }
+
+      adminSalonsList.innerHTML = filtered.map(s => `
+        <div class="appt-card" style="margin-bottom:12px">
+          <div>
+            <h3>${s.name} <span class="badge badge-${s.status === 'approved' ? 'success' : s.status === 'rejected' ? 'danger' : 'warning'}">${s.status.toUpperCase()}</span></h3>
+            <p>📍 ${s.city} — ${s.address}</p>
+            <p>📞 Phone: ${s.phone}</p>
+          </div>
+          <div class="appt-actions">
+            ${s.status !== 'approved' ? `<button class="btn-approve" onclick="window.verifySalon('${s.id}', 'approved')">Approve ✅</button>` : ''}
+            ${s.status !== 'rejected' ? `<button class="btn-reject" onclick="window.verifySalon('${s.id}', 'rejected')">Reject ✕</button>` : ''}
+          </div>
+        </div>
+      `).join('');
     }
 
-    pendingListElem.innerHTML = salons.map(s => `
-      <div class="appt-card">
-        <div>
-          <h3>${s.name} (${s.category})</h3>
-          <p>📍 ${s.city} — ${s.address}</p>
-          <p>📞 Phone: ${s.phone}</p>
-        </div>
-        <div class="appt-actions">
-          <button class="btn-approve" onclick="window.verifySalon('${s.id}', 'approved')">Approve Salon ✅</button>
-          <button class="btn-reject" onclick="window.verifySalon('${s.id}', 'rejected')">Reject ✕</button>
-        </div>
-      </div>
-    `).join('');
+    renderAdminSalons();
+
+    document.querySelectorAll(".admin-tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".admin-tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderAdminSalons();
+      });
+    });
   });
 }
 
 window.verifySalon = async function(salonId, newStatus) {
   try {
     await updateDoc(doc(db, "salons", salonId), { status: newStatus });
-    alert(`Salon registration ${newStatus}!`);
+    showToast(`Salon registration ${newStatus.toUpperCase()}!`, "success");
   } catch (err) {
-    alert("Error verifying salon: " + err.message);
+    showToast("Error verifying salon: " + err.message, "error");
   }
 };
 
-// Initialize listeners on boot
+// -------------------------------------------------------------
+// 5. PWA SERVICE WORKER REGISTRATION
+// -------------------------------------------------------------
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(err => console.log("SW Reg Error:", err));
+  });
+}
+
+// Initialize boot listeners
 listenToSalons();

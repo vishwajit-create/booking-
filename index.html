@@ -4,13 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Urban Hair | Salon & Beauty Parlour Booking Platform</title>
-  <meta name="description" content="Book appointments at top salons & beauty parlours near you. salon owners can manage bookings and register their shop." />
+  <meta name="description" content="Book appointments at top salons & beauty parlours near you. Salon owners can manage bookings, services, and register their shop." />
+  <meta name="theme-color" content="#8b5cf6" />
+  <link rel="manifest" href="manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
 
   <!-- Background Decorative Aurora Grid -->
   <div class="glow-bg" aria-hidden="true"></div>
@@ -21,7 +26,7 @@
       <div class="brand-logo" id="brand-home">
         <span class="logo-icon">✂️</span>
         <span class="logo-text">Urban<span class="highlight">Hair</span></span>
-        <span class="badge-tag">Firebase Powered</span>
+        <span class="badge-tag">Pro</span>
       </div>
 
       <!-- Navigation Tabs for Views -->
@@ -92,15 +97,14 @@
       <div class="container">
         <div class="section-title-row">
           <h2>Available Salons & Parlours</h2>
-          <span class="count-tag" id="salons-count-label">0 Verified Salons</span>
+          <span class="count-tag" id="salons-count-label">Loading Verified Salons...</span>
         </div>
         
         <div id="salons-grid" class="salons-grid">
-          <!-- Dynamic Salon Cards Rendered Here -->
-          <div class="empty-state">
-            <div class="spinner"></div>
-            <p>Loading verified salons from Firestore...</p>
-          </div>
+          <!-- Skeleton Shimmer Loaders initially -->
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
         </div>
       </div>
     </section>
@@ -117,7 +121,8 @@
 
         <div id="my-appointments-list" class="appointments-list">
           <div class="empty-state">
-            <p>You haven't booked any appointments yet.</p>
+            <div class="spinner"></div>
+            <p>Fetching your appointments...</p>
           </div>
         </div>
       </div>
@@ -186,14 +191,38 @@
 
         <!-- Salon Owner Active Dashboard (Show if owner registered shop) -->
         <div id="owner-active-dash" class="dashboard-wrapper" style="display: none;">
-          <!-- Shop Header Banner -->
+          <!-- Shop Header Banner & Controls -->
           <div class="shop-banner-card">
             <div class="shop-banner-info">
-              <h2 id="owner-shop-name">My Salon</h2>
+              <div class="shop-title-row">
+                <h2 id="owner-shop-name">My Salon</h2>
+                <div class="toggle-switch-wrapper">
+                  <span class="toggle-label">Accepting Bookings:</span>
+                  <label class="switch">
+                    <input type="checkbox" id="toggle-shop-open" checked />
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
               <p id="owner-shop-location">Address</p>
+              
               <div class="status-row">
                 <span id="owner-shop-status-badge" class="badge badge-warning">Pending Approval</span>
                 <span id="owner-shop-cat-badge" class="badge badge-info">Hair & Styling</span>
+                <button id="btn-open-service-manager" class="btn-secondary btn-sm">⚙️ Manage Services Menu</button>
+              </div>
+            </div>
+
+            <!-- Revenue Stats -->
+            <div class="shop-banner-stats">
+              <div class="mini-stat">
+                <span id="owner-stat-revenue" class="mini-stat-val">₹0</span>
+                <span class="mini-stat-label">Total Revenue</span>
+              </div>
+              <div class="mini-stat">
+                <span id="owner-stat-completed" class="mini-stat-val">0</span>
+                <span class="mini-stat-label">Completed Bookings</span>
               </div>
             </div>
           </div>
@@ -250,16 +279,21 @@
           </div>
         </div>
 
-        <!-- Pending Salon Verifications Section -->
+        <!-- All Salons Overseer Section -->
         <div class="dashboard-card">
-          <div class="card-header">
-            <h3>⏳ Pending Salon Verification Queue</h3>
-            <p>Review new salon registrations and approve them to go live on the app.</p>
+          <div class="card-header-row">
+            <h3>🏬 All Registered Salons</h3>
+            <div class="admin-filter-tabs">
+              <button class="admin-tab-btn active" data-status-filter="all">All Salons</button>
+              <button class="admin-tab-btn" data-status-filter="pending">Pending</button>
+              <button class="admin-tab-btn" data-status-filter="approved">Approved</button>
+              <button class="admin-tab-btn" data-status-filter="rejected">Rejected</button>
+            </div>
           </div>
           
-          <div id="admin-pending-salons-list" class="salons-admin-list">
+          <div id="admin-salons-list" class="salons-admin-list">
             <div class="empty-state">
-              <p>No pending salon registration requests.</p>
+              <p>Loading salons directory...</p>
             </div>
           </div>
         </div>
@@ -389,6 +423,41 @@
 
         <button type="submit" class="btn-primary full-width btn-lg">Confirm Appointment Booking</button>
       </form>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────────────
+       MANAGE SERVICES MENU MODAL (SALON OWNER)
+  ───────────────────────────────────────────────────────────── -->
+  <div id="service-manager-modal" class="modal-overlay">
+    <div class="modal-card">
+      <button id="btn-close-service-modal" class="modal-close">✕</button>
+
+      <div class="modal-header">
+        <span class="modal-icon">✂️</span>
+        <h2>Manage Services & Menu</h2>
+        <p>Add, update or remove services offered by your salon.</p>
+      </div>
+
+      <div class="services-manager-list" id="services-manager-list">
+        <!-- Dynamic existing services list -->
+      </div>
+
+      <div class="add-new-service-box">
+        <h3>+ Add New Service</h3>
+        <div class="form-group">
+          <input type="text" id="new-service-name" placeholder="Service Name (e.g. Keratin Hair Treatment)" />
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <input type="number" id="new-service-price" placeholder="Price (₹)" />
+          </div>
+          <div class="form-group">
+            <input type="number" id="new-service-duration" placeholder="Duration (mins)" />
+          </div>
+        </div>
+        <button id="btn-save-new-service" class="btn-primary full-width">Add Service to Menu</button>
+      </div>
     </div>
   </div>
 
