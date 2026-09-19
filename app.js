@@ -90,11 +90,9 @@ navButtons.forEach(btn => {
         openModal(authModal);
         return;
       }
-      if (userProfile && userProfile.role !== "super_admin") {
-        userProfile.role = "super_admin";
-        updateDoc(doc(db, "users", currentUser.uid), { role: "super_admin" });
-        updateUIForAuthenticatedUser(userProfile);
-        showToast("🎉 Granted Super Admin Privileges!", "success");
+      if (!userProfile || userProfile.role !== "super_admin") {
+        showToast("Access denied. You need Super Admin privileges.", "error");
+        return;
       }
       loadSuperAdminDashboard();
     }
@@ -169,13 +167,23 @@ async function syncUserProfile(user, fallbackRole = 'customer') {
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
 
+  const isAdminEmail = user.email === 'admin@urbanhair.app' || user.email === 'vishw_8mxgyao@gmail.com';
+
   if (snap.exists()) {
-    return snap.data();
-  } else {
-    let role = fallbackRole;
-    if (user.email === 'admin@urbanhair.app' || user.email === 'vishw_8mxgyao@gmail.com') {
-      role = 'super_admin';
+    const existing = snap.data();
+    // Always upgrade admin emails to super_admin
+    if (isAdminEmail && existing.role !== 'super_admin') {
+      await updateDoc(userRef, { role: 'super_admin' });
+      return { ...existing, role: 'super_admin' };
     }
+    // Honour explicit super_admin role selection even for returning users
+    if (fallbackRole === 'super_admin' && existing.role !== 'super_admin') {
+      await updateDoc(userRef, { role: 'super_admin' });
+      return { ...existing, role: 'super_admin' };
+    }
+    return existing;
+  } else {
+    const role = isAdminEmail ? 'super_admin' : fallbackRole;
     
     const profile = {
       uid: user.uid,
@@ -195,9 +203,15 @@ document.getElementById("btn-google-login")?.addEventListener("click", async () 
   try {
     const role = getSelectedAuthRole();
     const result = await signInWithPopup(auth, googleProvider);
-    await syncUserProfile(result.user, role);
+    const profile = await syncUserProfile(result.user, role);
     closeModal(authModal);
     showToast("Signed in successfully with Google!", "success");
+    // Auto-navigate to appropriate panel after login
+    if (profile && profile.role === 'super_admin') {
+      switchView("view-super-admin");
+    } else if (profile && profile.role === 'salon_owner') {
+      switchView("view-salon-owner");
+    }
   } catch (err) {
     console.error("Google Auth Error:", err);
     showToast("Google Sign-In Failed: " + err.message, "error");
@@ -299,10 +313,20 @@ function updateUIForAuthenticatedUser(profile) {
   userChip.style.display = "flex";
   
   document.getElementById("user-name-display").textContent = profile.displayName || profile.phoneNumber || "User";
-  document.getElementById("user-role-badge").textContent = profile.role.replace('_', ' ');
+  document.getElementById("user-role-badge").textContent = profile.role.replace(/_/g, ' ');
 
+  // Show/hide nav tabs based on role
+  document.getElementById("nav-my-bookings").style.display = "inline-flex";
+  document.getElementById("nav-owner-dash").style.display = 
+    (profile.role === 'salon_owner' || profile.role === 'super_admin') ? "inline-flex" : "none";
+  document.getElementById("nav-admin-dash").style.display = 
+    profile.role === 'super_admin' ? "inline-flex" : "none";
+
+  // Load data based on role only (avoid permission errors)
   loadMyBookings();
-  loadOwnerDashboard();
+  if (profile.role === 'salon_owner' || profile.role === 'super_admin') {
+    loadOwnerDashboard();
+  }
   if (profile.role === 'super_admin') {
     loadSuperAdminDashboard();
   }
@@ -311,6 +335,12 @@ function updateUIForAuthenticatedUser(profile) {
 function updateUIForGuest() {
   document.getElementById("btn-open-auth").style.display = "inline-block";
   document.getElementById("user-info-chip").style.display = "none";
+  // Hide protected nav tabs for guests
+  document.getElementById("nav-my-bookings").style.display = "none";
+  document.getElementById("nav-owner-dash").style.display = "none";
+  document.getElementById("nav-admin-dash").style.display = "none";
+  // Always return to the main explore view on logout
+  switchView("view-customer");
 }
 
 // -------------------------------------------------------------
