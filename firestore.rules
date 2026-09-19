@@ -28,12 +28,10 @@ service cloud.firestore {
 
     // Salons collection
     match /salons/{salonId} {
-      // Anyone logged in can read approved salons, or owner can read their own salon, or super admin
-      allow read: if isAuthenticated() && (
-        resource.data.status == 'approved' || 
-        resource.data.ownerId == request.auth.uid || 
-        isSuperAdmin()
-      );
+      // Public / Unauthenticated visitors can read approved salons!
+      // Salon owners can read their own pending/approved salon, super admin can read all
+      allow read: if resource.data.status == 'approved' || 
+        (isAuthenticated() && (resource.data.ownerId == request.auth.uid || isSuperAdmin()));
       
       // Salon owners can register a new salon (initially pending)
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;

@@ -303,7 +303,7 @@ function listenToSalons() {
       if (filtered.length === 0) {
         salonsGrid.innerHTML = `
           <div class="empty-state full-width">
-            <p>No salons match your search criteria.</p>
+            <p>No verified salons found yet. Click <strong>"Sign In / Register"</strong> to register your salon!</p>
           </div>
         `;
         return;
@@ -365,7 +365,8 @@ function listenToSalons() {
     });
   }, (err) => {
     console.error("Error loading salons:", err);
-    salonsGrid.innerHTML = `<div class="empty-state"><p>Cloud Firestore data offline.</p></div>`;
+    salonsCountLabel.textContent = `0 Verified Salons`;
+    salonsGrid.innerHTML = `<div class="empty-state"><p>No approved salons listed yet. Sign in as Salon Owner to register your shop!</p></div>`;
   });
 }
 
