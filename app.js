@@ -218,35 +218,90 @@ document.getElementById("btn-google-login")?.addEventListener("click", async () 
   }
 });
 
-// Setup Recaptcha for Phone Auth
-function initRecaptcha() {
-  if (!window.recaptchaVerifier) {
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      'size': 'invisible'
-    });
+// Setup & Reset Recaptcha for Phone Auth
+function resetRecaptcha() {
+  if (window.recaptchaVerifier) {
+    try {
+      window.recaptchaVerifier.clear();
+    } catch (e) {
+      console.log("Recaptcha clear error:", e);
+    }
+    window.recaptchaVerifier = null;
   }
+  const container = document.getElementById("recaptcha-container");
+  if (container) container.innerHTML = "";
+}
+
+function initRecaptcha() {
+  resetRecaptcha();
+  window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+    'size': 'invisible',
+    'expired-callback': () => {
+      resetRecaptcha();
+    }
+  });
 }
 
 // Phone Send OTP
 document.getElementById("btn-send-otp")?.addEventListener("click", async () => {
-  const phoneNum = document.getElementById("input-phone-number").value.trim();
-  if (!phoneNum || phoneNum.length < 10) {
+  let rawPhone = document.getElementById("input-phone-number").value.trim().replace(/[\s\-\(\)]/g, '');
+  if (!rawPhone) {
+    showToast("Please enter a phone number.", "warning");
+    return;
+  }
+
+  // Format phone number to E.164 (+<country_code><number>)
+  if (!rawPhone.startsWith('+')) {
+    if (rawPhone.length === 10) {
+      rawPhone = '+91' + rawPhone;
+    } else {
+      rawPhone = '+' + rawPhone;
+    }
+  }
+
+  if (rawPhone.length < 11) {
     showToast("Please enter a valid phone number with country code (e.g. +91 9876543210)", "warning");
     return;
   }
 
+  const sendBtn = document.getElementById("btn-send-otp");
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Sending OTP...";
+
   try {
     initRecaptcha();
     const appVerifier = window.recaptchaVerifier;
-    confirmationResult = await signInWithPhoneNumber(auth, phoneNum, appVerifier);
+    confirmationResult = await signInWithPhoneNumber(auth, rawPhone, appVerifier);
     
     document.getElementById("phone-step-1").style.display = "none";
     document.getElementById("phone-step-2").style.display = "block";
-    showToast("Verification OTP sent to " + phoneNum, "info");
+    showToast("Verification OTP sent to " + rawPhone, "info");
   } catch (err) {
     console.error("Phone Auth Error:", err);
-    showToast("Failed to send SMS OTP: " + err.message, "error");
+    resetRecaptcha();
+    let msg = err.message;
+    if (err.code === 'auth/invalid-phone-number') {
+      msg = "Invalid phone number. Ensure country code is included (e.g. +91 9876543210).";
+    } else if (err.code === 'auth/captcha-check-failed' || err.code === 'auth/invalid-app-credential') {
+      msg = "reCAPTCHA verification failed. Please try again.";
+    } else if (err.code === 'auth/quota-exceeded') {
+      msg = "SMS quota exceeded for today. Try Google Sign-In instead.";
+    } else if (err.code === 'auth/too-many-requests') {
+      msg = "Too many attempts. Please wait a moment and try again.";
+    }
+    showToast("Failed to send SMS OTP: " + msg, "error");
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.textContent = "Send Verification OTP";
   }
+});
+
+// Resend OTP / Change Phone Number Handler
+document.getElementById("btn-resend-otp")?.addEventListener("click", () => {
+  resetRecaptcha();
+  document.getElementById("phone-step-2").style.display = "none";
+  document.getElementById("phone-step-1").style.display = "block";
+  document.getElementById("input-otp-code").value = "";
 });
 
 // Phone Verify OTP
@@ -257,15 +312,27 @@ document.getElementById("btn-verify-otp")?.addEventListener("click", async () =>
     return;
   }
 
+  const verifyBtn = document.getElementById("btn-verify-otp");
+  verifyBtn.disabled = true;
+  verifyBtn.textContent = "Verifying...";
+
   try {
     const role = getSelectedAuthRole();
     const result = await confirmationResult.confirm(otpCode);
-    await syncUserProfile(result.user, role);
+    const profile = await syncUserProfile(result.user, role);
     closeModal(authModal);
     showToast("Phone authentication successful!", "success");
+    if (profile && profile.role === 'super_admin') {
+      switchView("view-super-admin");
+    } else if (profile && profile.role === 'salon_owner') {
+      switchView("view-salon-owner");
+    }
   } catch (err) {
     console.error("OTP Verification Error:", err);
     showToast("Invalid OTP Code: " + err.message, "error");
+  } finally {
+    verifyBtn.disabled = false;
+    verifyBtn.textContent = "Verify & Sign In";
   }
 });
 
