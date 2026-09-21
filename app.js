@@ -236,6 +236,7 @@ function initRecaptcha() {
   resetRecaptcha();
   window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
     'size': 'invisible',
+    'sitekey': '6Leym8YtAAAAAJdfpcWOboHiXFxMwBXyhpHO95xD',
     'expired-callback': () => {
       resetRecaptcha();
     }
